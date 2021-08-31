@@ -2,11 +2,11 @@
 
 <table>
     <tr>
-        <td>模块</td>
-        <td>名称</td>
-        <td>方法</td>
-        <td width="40%">说明</td>
-        <td>master</td>
+        <td width="10%">模块</td>
+        <td width="20%">名称</td>
+        <td width="30%">方法</td>
+        <td>说明</td>
+        <td width="5%">master</td>
     </tr>
     <tr>
         <td rowspan="6">账号管理</td>
@@ -82,7 +82,7 @@
         <td>√</td>
     </tr>
     <tr>
-        <td rowspan="3">关系链管理</td>
+        <td rowspan="15">关系链管理</td>
         <td>
             <a href="https://cloud.tencent.com/document/product/269/1643">添加好友</a>
         </td>
@@ -114,6 +114,165 @@
                 <li>更新一个用户多个好友时，建议采用批量方式，避免并发写导致的写冲突。</li>
             </ul>
         </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1644">删除好友</a>
+        </td>
+        <td>SNS.DeleteFriends</td>
+        <td>删除好友，支持单向删除好友和双向删除好友。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1645">删除所有好友</a>
+        </td>
+        <td>SNS.DeleteAllFriends</td>
+        <td>清除指定用户的标配好友数据和自定义好友数据。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1646">校验好友</a>
+        </td>
+        <td>SNS.CheckFriends</td>
+        <td>支持批量校验好友关系。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1647">拉取好友</a>
+        </td>
+        <td>SNS.FetchFriends</td>
+        <td>
+            <ul>
+                <li>分页拉取全量好友数据。</li>
+                <li>不支持资料数据的拉取。</li>
+                <li>不需要指定请求拉取的字段，默认返回全量的标配好友数据和自定义好友数据。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/8609">拉取指定好友</a>
+        </td>
+        <td>SNS.GetFriends</td>
+        <td>
+            <ul>
+                <li>支持拉取指定好友的好友数据和资料数据。</li>
+                <li>建议每次拉取的好友数不超过100，避免因数据量太大导致回包失败。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/3718">添加黑名单</a>
+        </td>
+        <td>SNS.AddBlacklist</td>
+        <td>添加黑名单，支持批量添加黑名单。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/3719">删除黑名单</a>
+        </td>
+        <td>SNS.DeleteBlacklist</td>
+        <td>删除指定黑名单。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/3722">拉取黑名单</a>
+        </td>
+        <td>SNS.FetchBlacklist</td>
+        <td>支持分页拉取所有黑名单。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/3725">校验黑名单</a>
+        </td>
+        <td>SNS.CheckBlacklist</td>
+        <td>支持批量校验黑名单。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/10107">添加分组</a>
+        </td>
+        <td>SNS.AddGroups</td>
+        <td>添加分组，支持批量添加分组，并将指定好友加入到新增分组中。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/10108">删除分组</a>
+        </td>
+        <td>SNS.DeleteGroups</td>
+        <td>删除指定分组。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/54763">拉取分组</a>
+        </td>
+        <td>SNS.GetGroups</td>
+        <td>拉取分组，支持指定分组以及拉取分组下的好友列表。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td rowspan="2">全局禁言管理</td>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/4230">设置全局禁言</a>
+        </td>
+        <td>Mute.SetNoSpeaking</td>
+        <td>
+            <ul>
+                <li>设置帐号的单聊消息全局禁言。</li>
+                <li>设置帐号的群组消息全局禁言。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/4229">查询全局禁言</a>
+        </td>
+        <td>Mute.GetNoSpeaking</td>
+        <td>
+            <ul>
+                <li>查询帐号的单聊消息全局禁言。</li>
+                <li>查询帐号的群组消息全局禁言。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td rowspan="3">运营管理</td>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/4193">拉取运营数据</a>
+        </td>
+        <td>Operation.GetOperationData</td>
+        <td>App 管理员可以通过该接口拉取最近30天的运营数据，可拉取的字段见下文可拉取的运营字段。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1650">下载最近消息记录</a>
+        </td>
+        <td>Operation.GetHistoryData</td>
+        <td>App 管理员可以通过该接口获取 App 中最近7天中某天某小时的所有单发或群组消息记录的下载地址。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/45438">获取服务器IP地址</a>
+        </td>
+        <td>Operation.GetIPList</td>
+        <td>基于安全等考虑，您可能需要获知服务器的 IP 地址列表，以便进行相关限制。App 管理员可以通过该接口获得 SDK、第三方回调所使用到的服务器 IP 地址列表或 IP 网段信息。</td>
         <td>√</td>
     </tr>
 </table>

@@ -80,12 +80,12 @@ const (
 )
 
 type API interface {
-	// AddFriend 添加好友
+	// AddFriends 添加好友
 	// 添加好友，支持批量添加好友
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1643
 	AddFriends(userId string, friends []*Friend, isSingleAdd bool, isForceAdd bool) (results []Result, err error)
-	// ImportFriend 导入好友
+	// ImportFriends 导入好友
 	// 支持批量导入单向好友。
 	// 往同一个用户导入好友时建议采用批量导入的方式，避免并发写导致的写冲突。
 	// 点击查看详细文档:
@@ -116,16 +116,16 @@ type API interface {
 	// 支持拉取指定好友的好友数据和资料数据。
 	// 建议每次拉取的好友数不超过100，避免因数据量太大导致回包失败。
 	// 点击查看详细文档:
-	// https://cloud.tencent.com/document/product/269/1647
+	// https://cloud.tencent.com/document/product/269/8609
 	GetFriends(userId string, friendUserIds []string, tagList []string) (friends []*Friend, err error)
 	// FetchFriends 拉取好友
 	// 分页拉取全量好友数据。
 	// 不支持资料数据的拉取。
 	// 不需要指定请求拉取的字段，默认返回全量的标配好友数据和自定义好友数据。
 	// 点击查看详细文档:
-	// https://cloud.tencent.com/document/product/269/8609
+	// https://cloud.tencent.com/document/product/269/1647
 	FetchFriends(userId string, startIndex int, sequence ...int) (ret *FetchFriendsRet, err error)
-	// AddBlackList 添加黑名单
+	// AddBlacklist 添加黑名单
 	// 添加黑名单，支持批量添加黑名单。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/3718
@@ -149,12 +149,12 @@ type API interface {
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/10107
 	AddGroups(userId string, groupNames []string, groupUserIds ...[]string) (currentSequence int, results []Result, err error)
-	// DeleteGroup 删除分组
+	// DeleteGroups 删除分组
 	// 删除指定分组。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/10108
 	DeleteGroups(userId string, groupNames []string) (currentSequence int, err error)
-	// GetGroup 拉取分组
+	// GetGroups 拉取分组
 	// 拉取分组，支持指定分组以及拉取分组下的好友列表。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/54763
@@ -374,7 +374,7 @@ func (a *api) CheckFriends(userId string, checkUserIds []string, checkType Check
 // 支持拉取指定好友的好友数据和资料数据。
 // 建议每次拉取的好友数不超过100，避免因数据量太大导致回包失败。
 // 点击查看详细文档:
-// https://cloud.tencent.com/document/product/269/1647
+// https://cloud.tencent.com/document/product/269/8609
 func (a *api) GetFriends(userId string, friendUserIds []string, tagList []string) (friends []*Friend, err error) {
 	req := getFriendsReq{UserId: userId, FriendUserIds: friendUserIds}
 	resp := &getFriendsResp{}
@@ -410,7 +410,7 @@ func (a *api) GetFriends(userId string, friendUserIds []string, tagList []string
 // 不支持资料数据的拉取。
 // 不需要指定请求拉取的字段，默认返回全量的标配好友数据和自定义好友数据。
 // 点击查看详细文档:
-// https://cloud.tencent.com/document/product/269/8609
+// https://cloud.tencent.com/document/product/269/1647
 func (a *api) FetchFriends(userId string, startIndex int, sequence ...int) (ret *FetchFriendsRet, err error) {
 	req := fetchFriendsReq{UserId: userId, StartIndex: startIndex}
 	resp := &fetchFriendsResp{}
@@ -548,7 +548,7 @@ func (a *api) AddGroups(userId string, groupNames []string, groupUserIds ...[]st
 	return
 }
 
-// DeleteGroup 删除分组
+// DeleteGroups 删除分组
 // 删除指定分组。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/10108
@@ -565,7 +565,7 @@ func (a *api) DeleteGroups(userId string, groupNames []string) (currentSequence 
 	return
 }
 
-// GetGroup 拉取分组
+// GetGroups 拉取分组
 // 拉取分组，支持指定分组以及拉取分组下的好友列表。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/54763
