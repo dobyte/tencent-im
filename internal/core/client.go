@@ -12,9 +12,9 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
-	
+
 	"github.com/dobyte/http"
-	
+
 	"github.com/dobyte/tencent-im/internal/sign"
 	"github.com/dobyte/tencent-im/types"
 )
@@ -66,9 +66,9 @@ func NewClient(opt Options) Client {
 	c.userId = opt.UserId
 	c.client = http.NewClient()
 	c.client.SetContentType(http.ContentTypeJson)
-	//c.client.SetTimeout(defaultTimeout)
+	// c.client.SetTimeout(defaultTimeout)
 	c.client.SetBaseUrl(defaultBaseUrl)
-	
+
 	return c
 }
 
@@ -103,18 +103,16 @@ func (c *client) request(method, serviceName, command string, data, resp interfa
 	if err != nil {
 		return err
 	}
-	
-	if err := res.Scan(resp); err != nil {
+
+	if err = res.Scan(resp); err != nil {
 		return err
 	}
-	
+
 	if r, ok := resp.(types.ActionBaseRespInterface); ok {
 		if r.GetActionStatus() == FailActionStatus {
-			fmt.Println(r.GetErrorCode())
-			fmt.Println(r.GetErrorInfo())
 			return NewError(r.GetErrorCode(), r.GetErrorInfo())
 		}
-		
+
 		if r.GetErrorCode() != SuccessCode {
 			return NewError(r.GetErrorCode(), r.GetErrorInfo())
 		}
@@ -125,7 +123,7 @@ func (c *client) request(method, serviceName, command string, data, resp interfa
 	} else {
 		return invalidResponse
 	}
-	
+
 	return nil
 }
 
@@ -143,6 +141,6 @@ func (c *client) buildUrl(serviceName string, command string) string {
 		random,
 		defaultContentType,
 	)
-	
+
 	return url
 }

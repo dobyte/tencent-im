@@ -5,7 +5,7 @@
  * @Desc: Group Api Request And Response Type Definition.
  */
 
-package api
+package group
 
 import "github.com/dobyte/tencent-im/types"
 

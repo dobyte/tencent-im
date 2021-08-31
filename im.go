@@ -12,6 +12,7 @@ import (
 	"github.com/dobyte/tencent-im/internal/core"
 	"github.com/dobyte/tencent-im/mute"
 	"github.com/dobyte/tencent-im/operation"
+	"github.com/dobyte/tencent-im/private"
 	"github.com/dobyte/tencent-im/profile"
 	"github.com/dobyte/tencent-im/push"
 	"github.com/dobyte/tencent-im/sns"
@@ -31,16 +32,18 @@ type (
 		Account() account.API
 		// Profile 获取资料管理接口
 		Profile() profile.API
+		// Private 获取私聊消息接口
+		Private() private.API
 		// Operation 获取运营管理接口
 		Operation() operation.API
 	}
-	
+
 	Options struct {
 		AppId     int    // 应用 SDKAppID，可在即时通信 IM 控制台 的应用卡片中获取。
 		AppSecret string // 密钥信息，可在即时通信 IM 控制台 的应用详情页面中获取，具体操作请参见 获取密钥
 		UserId    string // 用户ID
 	}
-	
+
 	im struct {
 		client    core.Client
 		appId     int
@@ -83,6 +86,11 @@ func (i *im) Account() account.API {
 // Profile 获取资料管理接口
 func (i *im) Profile() profile.API {
 	return profile.NewAPI(i.client)
+}
+
+// Private 获取私聊消息接口
+func (i *im) Private() private.API {
+	return private.NewAPI(i.client)
 }
 
 // Operation 获取运营管理接口

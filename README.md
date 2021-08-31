@@ -9,6 +9,7 @@ go get github.com/dobyte/tencent-im
 ```
 
 ## 调用方法
+
 ```go
 package main
 
@@ -266,6 +267,58 @@ func main() {
         </td>
         <td>SNS.GetGroups</td>
         <td>拉取分组，支持指定分组以及拉取分组下的好友列表。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td rowspan="4">私聊消息</td>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/42794">查询单聊消息</a>
+        </td>
+        <td>Private.FetchMessages</td>
+        <td>
+            <ul>
+                <li>管理员按照时间范围查询某单聊会话的消息记录。</li>
+                <li>查询的单聊会话由请求中的 From_Account 和 To_Account 指定。查询结果包含会话双方互相发送的消息，具体每条消息的发送方和接收方由每条消息里的 From_Account 和 To_Account 指定。</li>
+                <li>一般情况下，请求中的 From_Account 和 To_Account 字段值互换，查询结果不变。但通过 单发单聊消息 或 批量发单聊消息 接口发送的消息，如果指定 SyncOtherMachine 值为2，则需要指定正确的 From_Account 和 To_Account 字段值才能查询到该消息。</li>
+                <li>查询结果包含被撤回的消息，由消息里的 MsgFlagBits 字段标识。</li>
+                <li>若想通过 REST API 撤回单聊消息 接口撤回某条消息，可先用本接口查询出该消息的 MsgKey，然后再调用撤回接口进行撤回。</li>
+                <li>可查询的消息记录的时间范围取决于漫游消息存储时长，默认是7天。支持在控制台修改消息漫游时长，延长消息漫游时长是增值服务。具体请参考 漫游消息存储。</li>
+                <li>若请求时间段内的消息总大小超过应答包体大小限制（目前为13K）时，则需要续拉。您可以通过应答中的 Complete 字段查看是否已拉取请求的全部消息。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/38980">撤回单聊消息</a>
+        </td>
+        <td>Private.RevokeMessage</td>
+        <td>
+            <ul>
+                <li>管理员撤回单聊消息。</li>
+                <li>该接口可以撤回所有单聊消息，包括客户端发出的单聊消息，由 REST API 单发 和 批量发 接口发出的单聊消息。</li>
+                <li>若需要撤回由客户端发出的单聊消息，您可以开通 发单聊消息之前回调 或 发单聊消息之后回调 ，通过该回调接口记录每条单聊消息的 MsgKey ，然后填在本接口的 MsgKey 字段进行撤回。您也可以通过 查询单聊消息 查询出待撤回的单聊消息的 MsgKey 后，填在本接口的 MsgKey 字段进行撤回。</li>
+                <li>若需要撤回由 REST API 单发 和 批量发 接口发出的单聊消息，需要记录这些接口回包里的 MsgKey 字段以进行撤回。</li>
+                <li>调用该接口撤回消息后，该条消息的离线、漫游存储，以及消息发送方和接收方的客户端的本地缓存都会被撤回。</li>
+                <li>该接口可撤回的单聊消息没有时间限制，即可以撤回任何时间的单聊消息。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/50349">设置单聊消息已读</a>
+        </td>
+        <td>Private.SetMessageRead</td>
+        <td>设置用户的某个单聊会话的消息全部已读。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/56043">查询单聊未读消息计数</a>
+        </td>
+        <td>Private.GetUnreadMessageNum</td>
+        <td>App 后台可以通过该接口查询特定账号的单聊总未读数（包含所有的单聊会话）或者单个单聊会话的未读数。</td>
         <td>√</td>
     </tr>
     <tr>

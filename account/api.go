@@ -2,7 +2,7 @@
  * @Author: fuxiao
  * @Author: 576101059@qq.com
  * @Date: 2021/5/27 20:07
- * @Desc: Account Api Implementation.
+ * @Desc: 账号管理
  */
 
 package account
@@ -36,16 +36,16 @@ type API interface {
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/4919
 	ImportAccounts(userIds []string) (failUserIds []string, err error)
-	// DeleteAccount 删除多个帐号
+	// DeleteAccounts 删除多个帐号
 	// 仅支持删除套餐包类型为 IM 体验版的帐号，其他类型的账号（如：TRTC、白板、专业版、旗舰版）无法删除。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/36443
-	DeleteAccounts(userIds []string) (results []DeleteResultItem, err error)
-	// CheckAccount 查询多个帐号.
+	DeleteAccounts(userIds []string) (results []DeleteResult, err error)
+	// CheckAccounts 查询多个帐号.
 	// 用于查询自有帐号是否已导入即时通信 IM，支持批量查询。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/38417
-	CheckAccounts(userIds []string) (results []CheckResultItem, err error)
+	CheckAccounts(userIds []string) (results []CheckResult, err error)
 	// KickAccount 使帐号登录状态失效
 	// 本接口适用于将 App 用户帐号的登录状态（例如 UserSig）失效。
 	// 例如，开发者判断一个用户为恶意帐号后，可以调用本接口将该用户当前的登录状态失效，这样用户使用历史 UserSig 登录即时通信 IM 会失败。
@@ -56,7 +56,7 @@ type API interface {
 	// 获取用户当前的登录状态。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/2566
-	QueryAccountsOnlineStatus(userIds []string, isNeedDetail ...bool) (*OnlineStatusResult, error)
+	QueryAccountsOnlineStatus(userIds []string, isNeedDetail ...bool) (ret *OnlineStatusRet, err error)
 }
 
 type api struct {
@@ -78,7 +78,7 @@ func (a *api) ImportAccount(account AccountInfo) (err error) {
 	if err = a.client.Post(serviceAccount, commandImportAccount, account, &types.ActionBaseResp{}); err != nil {
 		return
 	}
-	
+
 	return
 }
 
@@ -89,67 +89,66 @@ func (a *api) ImportAccount(account AccountInfo) (err error) {
 // https://cloud.tencent.com/document/product/269/4919
 func (a *api) ImportAccounts(userIds []string) (failUserIds []string, err error) {
 	if len(userIds) > 0 {
+		req := importAccountsReq{UserIds: userIds}
 		resp := &importAccountsResp{}
-		
-		if err = a.client.Post(serviceAccount, commandMultiImportAccount, importAccountsReq{
-			UserIds: userIds,
-		}, resp); err != nil {
+
+		if err = a.client.Post(serviceAccount, commandMultiImportAccount, req, resp); err != nil {
 			return
+		} else {
+			failUserIds = resp.FailAccounts
 		}
-		
-		failUserIds = resp.FailAccounts
 	}
-	
+
 	return
 }
 
-// DeleteAccount 删除多个帐号
+// DeleteAccounts 删除多个帐号
 // 仅支持删除套餐包类型为 IM 体验版的帐号，其他类型的账号（如：TRTC、白板、专业版、旗舰版）无法删除。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/36443
-func (a *api) DeleteAccounts(userIds []string) (results []DeleteResultItem, err error) {
+func (a *api) DeleteAccounts(userIds []string) (results []DeleteResult, err error) {
 	if len(userIds) > 0 {
 		req := deleteAccountsReq{}
 		resp := &deleteAccountsResp{}
-		
+
 		for _, userId := range userIds {
 			req.DeleteItem = append(req.DeleteItem, accountItem{
 				UserId: userId,
 			})
 		}
-		
+
 		if err = a.client.Post(serviceAccount, commandDeleteAccount, req, resp); err != nil {
 			return
+		} else {
+			results = resp.ResultItem
 		}
-		
-		results = resp.ResultItem
 	}
-	
+
 	return
 }
 
-// CheckAccount 查询多个帐号.
+// CheckAccounts 查询多个帐号.
 // 用于查询自有帐号是否已导入即时通信 IM，支持批量查询。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/38417
-func (a *api) CheckAccounts(userIds []string) (results []CheckResultItem, err error) {
+func (a *api) CheckAccounts(userIds []string) (results []CheckResult, err error) {
 	if len(userIds) > 0 {
 		req := checkAccountsReq{}
 		resp := &checkAccountsResp{}
-		
+
 		for _, userId := range userIds {
 			req.CheckItem = append(req.CheckItem, accountItem{
 				UserId: userId,
 			})
 		}
-		
+
 		if err = a.client.Post(serviceAccount, commandCheckAccount, req, resp); err != nil {
 			return
+		} else {
+			results = resp.Results
 		}
-		
-		results = resp.ResultItem
 	}
-	
+
 	return
 }
 
@@ -159,12 +158,12 @@ func (a *api) CheckAccounts(userIds []string) (results []CheckResultItem, err er
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/3853
 func (a *api) KickAccount(userId string) (err error) {
-	if err = a.client.Post(serviceAccount, commandKickAccount, kickAccountReq{
-		UserId: userId,
-	}, &types.ActionBaseResp{}); err != nil {
+	req := kickAccountReq{UserId: userId}
+
+	if err = a.client.Post(serviceAccount, commandKickAccount, req, &types.ActionBaseResp{}); err != nil {
 		return
 	}
-	
+
 	return
 }
 
@@ -172,23 +171,22 @@ func (a *api) KickAccount(userId string) (err error) {
 // 获取用户当前的登录状态。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/2566
-func (a *api) QueryAccountsOnlineStatus(userIds []string, isNeedDetail ...bool) (*OnlineStatusResult, error) {
-	var isNeed int
-	if len(isNeedDetail) > 0 && isNeedDetail[0] {
-		isNeed = 1
-	}
-	
+func (a *api) QueryAccountsOnlineStatus(userIds []string, isNeedDetail ...bool) (ret *OnlineStatusRet, err error) {
+	req := queryAccountsOnlineStatusReq{UserIds: userIds}
 	resp := &queryAccountsOnlineStatusResp{}
-	
-	if err := a.client.Post(serviceOpenIM, commandQueryAccountsOnlineStatus, queryAccountsOnlineStatusReq{
-		IsNeedDetail: isNeed,
-		UserIds:      userIds,
-	}, resp); err != nil {
-		return nil, err
+
+	if len(isNeedDetail) > 0 && isNeedDetail[0] {
+		req.IsNeedDetail = 1
 	}
-	
-	return &OnlineStatusResult{
-		Results: resp.QueryResult,
-		Errors:  resp.ErrorList,
-	}, nil
+
+	if err = a.client.Post(serviceOpenIM, commandQueryAccountsOnlineStatus, req, resp); err != nil {
+		return
+	} else {
+		ret = &OnlineStatusRet{
+			Results: resp.QueryResult,
+			Errors:  resp.ErrorList,
+		}
+	}
+
+	return
 }

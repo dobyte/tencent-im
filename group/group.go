@@ -5,7 +5,7 @@
  * @Desc: Group Api Implementation.
  */
 
-package api
+package group
 
 import (
 	"github.com/dobyte/tencent-im/internal/core"
