@@ -1,6 +1,6 @@
 /**
- * @Author: wanglin
- * @Author: wanglin@vspn.com
+ * @Author: fuxiao
+ * @Author: 576101059@qq.com
  * @Date: 2021/5/27 16:36
  * @Desc: Callback request struct defined.
  */

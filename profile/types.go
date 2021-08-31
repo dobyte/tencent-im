@@ -1,6 +1,6 @@
 /**
- * @Author: wanglin
- * @Author: wanglin@vspn.com
+ * @Author: fuxiao
+ * @Author: 576101059@qq.com
  * @Date: 2021/5/29 17:38
  * @Desc: 资料管理结构体定义
  */
