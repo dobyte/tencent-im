@@ -49,8 +49,8 @@ func main() {
 <table>
     <tr>
         <td width="10%">模块</td>
-        <td width="20%">名称</td>
-        <td width="30%">方法</td>
+        <td width="14%">名称</td>
+        <td>方法</td>
         <td>说明</td>
         <td width="5%">master</td>
     </tr>
@@ -99,7 +99,7 @@ func main() {
         <td>
             <a href="https://cloud.tencent.com/document/product/269/2566">查询帐号在线状态</a>
         </td>
-        <td>Account.QueryAccountsOnlineStatus</td>
+        <td>Account.GetAccountsOnlineState</td>
         <td>获取用户当前的登录状态。</td>
         <td>√</td>
     </tr>
@@ -270,7 +270,7 @@ func main() {
         <td>√</td>
     </tr>
     <tr>
-        <td rowspan="6">私聊消息</td>
+        <td rowspan="8">私聊消息</td>
         <td>
             <a href="https://cloud.tencent.com/document/product/269/2282">单发单聊消息</a>
         </td>
@@ -279,6 +279,23 @@ func main() {
             <ul>
                 <li>管理员向帐号发消息，接收方看到消息发送者是管理员。</li>
                 <li>管理员指定某一帐号向其他帐号发消息，接收方看到发送者不是管理员，而是管理员指定的帐号。</li>
+                <li>该接口不会检查发送者和接收者的好友关系（包括黑名单），同时不会检查接收者是否被禁言。</li>
+                <li>单聊消息 MsgSeq 字段的作用及说明：该字段在发送消息时由用户自行指定，该值可以重复，非后台生成，非全局唯一。与群聊消息的 MsgSeq 字段不同，群聊消息的 MsgSeq 由后台生成，每个群都维护一个 MsgSeq，从1开始严格递增。单聊消息历史记录对同一个会话的消息先以时间戳排序，同秒内的消息再以 MsgSeq 排序。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1612">批量发单聊消息</a>
+        </td>
+        <td>Private.SendMessages</td>
+        <td>
+            <ul>
+                <li>支持一次对最多500个用户进行单发消息。</li>
+                <li>与单发消息相比，该接口更适用于营销类消息、系统通知 tips 等时效性较强的消息。</li>
+                <li>管理员指定某一帐号向目标帐号批量发消息，接收方看到发送者不是管理员，而是管理员指定的帐号。</li>
+                <li>该接口不触发回调请求。</li>
                 <li>该接口不会检查发送者和接收者的好友关系（包括黑名单），同时不会检查接收者是否被禁言。</li>
                 <li>单聊消息 MsgSeq 字段的作用及说明：该字段在发送消息时由用户自行指定，该值可以重复，非后台生成，非全局唯一。与群聊消息的 MsgSeq 字段不同，群聊消息的 MsgSeq 由后台生成，每个群都维护一个 MsgSeq，从1开始严格递增。单聊消息历史记录对同一个会话的消息先以时间戳排序，同秒内的消息再以 MsgSeq 排序。</li>
             </ul>

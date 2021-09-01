@@ -9,18 +9,27 @@ package private
 
 import (
 	"errors"
-	
+
 	"github.com/dobyte/tencent-im/enum"
 	"github.com/dobyte/tencent-im/types"
 )
 
 var (
-	invalidMsgContent  = errors.New("invalid msg content")
-	invalidMsgLifeTime = errors.New("invalid msg life time")
+	errInvalidMsgContent  = errors.New("invalid msg content")
+	errInvalidMsgLifeTime = errors.New("invalid msg life time")
+	errNotSetMsgContent   = errors.New("do not set msg content")
+	errNotSetMsgReceiver  = errors.New("do not set msg receiver")
+)
+
+const (
+	invalidMsgContent = iota
+	invalidMsgLifeTime
+	notSetMsgContent
+	notSetMsgReceiver
 )
 
 type Message struct {
-	err                error
+	errs               map[int]error          //
 	fromUserId         string                 // 发送方UserId
 	toUserIds          []string               // 接收方UserId（可以为多个）
 	isSyncOtherMachine bool                   // 是否同步到其他机器
@@ -35,16 +44,25 @@ type Message struct {
 }
 
 func NewMessage() *Message {
-	return &Message{
+	m := &Message{
 		body:            make([]types.MsgBody, 0),
 		toUserIds:       make([]string, 0),
 		forbidCallbacks: make(map[string]bool),
 		sendControls:    make(map[string]bool),
+		errs:            make(map[int]error),
 	}
+
+	m.errs = make(map[int]error)
+	m.errs[notSetMsgContent] = errNotSetMsgContent
+	m.errs[notSetMsgReceiver] = errNotSetMsgReceiver
+
+	return m
 }
 
-// EmptyContent 清空消息内容
+// AddContent 清空消息内容
 func (m *Message) AddContent(msgContent interface{}) *Message {
+	delete(m.errs, notSetMsgContent)
+
 	var msgType string
 	switch msgContent.(type) {
 	case types.MsgTextContent, *types.MsgTextContent:
@@ -64,24 +82,22 @@ func (m *Message) AddContent(msgContent interface{}) *Message {
 	case types.MsgVideoContent, *types.MsgVideoContent:
 		msgType = enum.MsgVideo
 	default:
-		m.err = invalidMsgContent
+		m.errs[invalidMsgContent] = errInvalidMsgContent
 		return m
 	}
-	
+
 	m.body = append(m.body, types.MsgBody{
 		MsgType:    msgType,
 		MsgContent: msgContent,
 	})
-	
+
 	return m
 }
 
 // SetContent 设置消息内容
 func (m *Message) SetContent(msgContent interface{}) *Message {
 	m.body = m.body[0:0]
-	if m.err == invalidMsgContent {
-		m.err = nil
-	}
+	delete(m.errs, invalidMsgContent)
 	return m.AddContent(msgContent)
 }
 
@@ -92,8 +108,9 @@ func (m *Message) SetSender(userId string) *Message {
 }
 
 // AddReceiver 添加接收方UserId
-func (m *Message) AddReceiver(userId string) *Message {
-	m.toUserIds = append(m.toUserIds, userId)
+func (m *Message) AddReceiver(userId ...string) *Message {
+	delete(m.errs, notSetMsgReceiver)
+	m.toUserIds = append(m.toUserIds, userId...)
 	return m
 }
 
@@ -112,7 +129,7 @@ func (m *Message) SetSyncOtherMachine() *Message {
 // SetLifeTime 设置消息离线保存时长
 func (m *Message) SetLifeTime(lifeTime int) *Message {
 	if lifeTime < 0 || lifeTime > 604800 {
-		m.err = invalidMsgLifeTime
+		m.errs[invalidMsgLifeTime] = errInvalidMsgLifeTime
 	} else {
 		m.lifeTime = lifeTime
 	}
@@ -169,10 +186,13 @@ func (m *Message) SetNoLastMsg() *Message {
 
 // IsValid 检测消息是否有效
 func (m *Message) IsValid() bool {
-	return m.err == nil
+	return len(m.errs) == 0
 }
 
 // GetError 获取异常错误
 func (m *Message) GetError() error {
-	return m.err
+	if len(m.errs) > 0 {
+		return m.errs[0]
+	}
+	return nil
 }

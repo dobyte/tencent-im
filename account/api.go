@@ -52,11 +52,11 @@ type API interface {
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/3853
 	KickAccount(userId string) (err error)
-	// QueryAccountsOnlineStatus 查询多个帐号在线状态
+	// GetAccountsOnlineState 查询多个帐号在线状态
 	// 获取用户当前的登录状态。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/2566
-	QueryAccountsOnlineStatus(userIds []string, isNeedDetail ...bool) (ret *OnlineStatusRet, err error)
+	GetAccountsOnlineState(userIds []string, isNeedDetail ...bool) (ret *OnlineStatusRet, err error)
 }
 
 type api struct {
@@ -167,11 +167,11 @@ func (a *api) KickAccount(userId string) (err error) {
 	return
 }
 
-// QueryAccountsOnlineStatus 查询多个帐号在线状态
+// GetAccountsOnlineState 查询多个帐号在线状态
 // 获取用户当前的登录状态。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/2566
-func (a *api) QueryAccountsOnlineStatus(userIds []string, isNeedDetail ...bool) (ret *OnlineStatusRet, err error) {
+func (a *api) GetAccountsOnlineState(userIds []string, isNeedDetail ...bool) (ret *OnlineStatusRet, err error) {
 	req := queryAccountsOnlineStatusReq{UserIds: userIds}
 	resp := &queryAccountsOnlineStatusResp{}
 
