@@ -48,8 +48,8 @@ func main() {
 
 <table>
     <tr>
-        <td width="10%">模块</td>
-        <td width="14%">名称</td>
+        <td>模块</td>
+        <td>名称</td>
         <td>方法</td>
         <td>说明</td>
         <td width="5%">master</td>
