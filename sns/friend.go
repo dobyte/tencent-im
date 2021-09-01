@@ -2,7 +2,7 @@
  * @Author: fuxiao
  * @Email: 576101059@qq.com
  * @Date: 2021/8/30 2:55 下午
- * @Desc: TODO
+ * @Desc: 好友关系
  */
 
 package sns

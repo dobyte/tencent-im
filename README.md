@@ -270,13 +270,64 @@ func main() {
         <td>√</td>
     </tr>
     <tr>
-        <td rowspan="4">私聊消息</td>
+        <td rowspan="6">私聊消息</td>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/2282">单发单聊消息</a>
+        </td>
+        <td>Private.SendMessage</td>
+        <td>
+            <ul>
+                <li>管理员向帐号发消息，接收方看到消息发送者是管理员。</li>
+                <li>管理员指定某一帐号向其他帐号发消息，接收方看到发送者不是管理员，而是管理员指定的帐号。</li>
+                <li>该接口不会检查发送者和接收者的好友关系（包括黑名单），同时不会检查接收者是否被禁言。</li>
+                <li>单聊消息 MsgSeq 字段的作用及说明：该字段在发送消息时由用户自行指定，该值可以重复，非后台生成，非全局唯一。与群聊消息的 MsgSeq 字段不同，群聊消息的 MsgSeq 由后台生成，每个群都维护一个 MsgSeq，从1开始严格递增。单聊消息历史记录对同一个会话的消息先以时间戳排序，同秒内的消息再以 MsgSeq 排序。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/2568">导入单聊消息</a>
+        </td>
+        <td>Private.ImportMessage</td>
+        <td>
+            <ul>
+                <li>导入历史单聊消息到即时通信 IM。</li>
+                <li>平滑过渡期间，将原有即时通信实时单聊消息导入到即时通信 IM。</li>
+                <li>该接口不会触发回调。</li>
+                <li>该接口会根据 From_Account ， To_Account ，MsgSeq ， MsgRandom ， MsgTimeStamp 字段的值对导入的消息进行去重。仅当这五个字段的值都对应相同时，才判定消息是重复的，消息是否重复与消息内容本身无关。</li>
+                <li>重复导入的消息不会覆盖之前已导入的消息（即消息内容以首次导入的为准）。</li>
+                <li>单聊消息 MsgSeq 字段的作用及说明：该字段在发送消息时由用户自行指定，该值可以重复，非后台生成，非全局唯一。与群聊消息的 MsgSeq 字段不同，群聊消息的 MsgSeq 由后台生成，每个群都维护一个 MsgSeq，从1开始严格递增。单聊消息历史记录对同一个会话的消息先以时间戳排序，同秒内的消息再以 MsgSeq 排序。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
         <td>
             <a href="https://cloud.tencent.com/document/product/269/42794">查询单聊消息</a>
         </td>
         <td>Private.FetchMessages</td>
         <td>
             <ul>
+                <li>管理员按照时间范围查询某单聊会话的消息记录。</li>
+                <li>查询的单聊会话由请求中的 From_Account 和 To_Account 指定。查询结果包含会话双方互相发送的消息，具体每条消息的发送方和接收方由每条消息里的 From_Account 和 To_Account 指定。</li>
+                <li>一般情况下，请求中的 From_Account 和 To_Account 字段值互换，查询结果不变。但通过 单发单聊消息 或 批量发单聊消息 接口发送的消息，如果指定 SyncOtherMachine 值为2，则需要指定正确的 From_Account 和 To_Account 字段值才能查询到该消息。</li>
+                <li>查询结果包含被撤回的消息，由消息里的 MsgFlagBits 字段标识。</li>
+                <li>若想通过 REST API 撤回单聊消息 接口撤回某条消息，可先用本接口查询出该消息的 MsgKey，然后再调用撤回接口进行撤回。</li>
+                <li>可查询的消息记录的时间范围取决于漫游消息存储时长，默认是7天。支持在控制台修改消息漫游时长，延长消息漫游时长是增值服务。具体请参考 漫游消息存储。</li>
+                <li>若请求时间段内的消息总大小超过应答包体大小限制（目前为13K）时，则需要续拉。您可以通过应答中的 Complete 字段查看是否已拉取请求的全部消息。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/42794">续拉取单聊消息</a>
+        </td>
+        <td>Private.PullMessages</td>
+        <td>
+            <ul>
+                <li>本API是借助"查询单聊消息"API进行扩展实现。</li>
                 <li>管理员按照时间范围查询某单聊会话的消息记录。</li>
                 <li>查询的单聊会话由请求中的 From_Account 和 To_Account 指定。查询结果包含会话双方互相发送的消息，具体每条消息的发送方和接收方由每条消息里的 From_Account 和 To_Account 指定。</li>
                 <li>一般情况下，请求中的 From_Account 和 To_Account 字段值互换，查询结果不变。但通过 单发单聊消息 或 批量发单聊消息 接口发送的消息，如果指定 SyncOtherMachine 值为2，则需要指定正确的 From_Account 和 To_Account 字段值才能查询到该消息。</li>
