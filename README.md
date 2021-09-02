@@ -14,33 +14,33 @@ go get github.com/dobyte/tencent-im
 package main
 
 import (
-	"fmt"
-
-	"github.com/dobyte/tencent-im"
-	"github.com/dobyte/tencent-im/account"
+    "fmt"
+    
+    "github.com/dobyte/tencent-im"
+    "github.com/dobyte/tencent-im/account"
 )
 
 func main() {
-	tim := im.NewIM(im.Options{
-		AppId:     1400579830,                                                         // 无效的AppId,请勿直接使用
-		AppSecret: "0d2a321b087fdb8fd5ed5ea14fe0489139086eb1b03541283fc9feeab8f2bfd3", // 无效的AppSecret,请勿直接使用
-		UserId:    "administrator",                                                    // 管理员用户账号，请在腾讯云IM后台设置管理账号
-	})
-
-	// 导入账号
-	if err := tim.Account().ImportAccount(account.AccountInfo{
-		UserId:    "test1",
-		Nickname:  "测试账号1",
-		AvatarUrl: "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png",
-	}); err != nil {
-		if e, ok := err.(im.Error); ok {
-			fmt.Println(fmt.Sprintf("import accout failed, code:%d, message:%s.", e.Code(), e.Message()))
-		} else {
-			fmt.Println(fmt.Sprintf("import accout failed:%s.", err.Error()))
-		}
-	}
-
-	fmt.Println("import account success.")
+    tim := im.NewIM(im.Options{
+        AppId:     1400579830,                                                         // 无效的AppId,请勿直接使用
+        AppSecret: "0d2a321b087fdb8fd5ed5ea14fe0489139086eb1b03541283fc9feeab8f2bfd3", // 无效的AppSecret,请勿直接使用
+        UserId:    "administrator",                                                    // 管理员用户账号，请在腾讯云IM后台设置管理账号
+    })
+    
+    // 导入账号
+    if err := tim.Account().ImportAccount(account.AccountInfo{
+        UserId:    "test1",
+        Nickname:  "测试账号1",
+        AvatarUrl: "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png",
+    }); err != nil {
+        if e, ok := err.(im.Error); ok {
+            fmt.Println(fmt.Sprintf("import accout failed, code:%d, message:%s.", e.Code(), e.Message()))
+        } else {
+            fmt.Println(fmt.Sprintf("import accout failed:%s.", err.Error()))
+        }
+    }
+    
+    fmt.Println("import account success.")
 }
 ```
 
@@ -387,6 +387,86 @@ func main() {
         </td>
         <td>Private.GetUnreadMessageNum</td>
         <td>App 后台可以通过该接口查询特定账号的单聊总未读数（包含所有的单聊会话）或者单个单聊会话的未读数。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td rowspan="9">全员推送</td>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/45935">设置应用属性名称</a>
+        </td>
+        <td>Push.SetAttrNames</td>
+        <td>每个应用可以设置自定义的用户属性，最多可以有10个。通过本接口可以设置每个属性的名称，设置完成后，即可用于按用户属性推送等。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/45936">获取应用属性名称</a>
+        </td>
+        <td>Push.GetAttrNames</td>
+        <td>管理员获取应用属性名称。使用前请先 设置应用属性名称 。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/45937">获取用户属性</a>
+        </td>
+        <td>Push.GetUserAttrs</td>
+        <td>获取用户属性（必须以管理员帐号调用）；每次最多只能获取100个用户的属性。使用前请先 设置应用属性名称 。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/45938">设置用户属性</a>
+        </td>
+        <td>Push.SetUserAttrs</td>
+        <td>管理员给用户设置属性。每次最多只能给100个用户设置属性。使用前请先 设置应用属性名称 。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/45939">删除用户属性</a>
+        </td>
+        <td>Push.DeleteUserAttrs</td>
+        <td>管理员给用户删除属性。注意每次最多只能给100个用户删除属性。使用前请先 设置应用属性名称。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/45940">获取用户标签</a>
+        </td>
+        <td>Push.GetUserTags</td>
+        <td>获取用户标签（必须以管理员帐号调用）。每次最多只能获取100个用户的标签。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/45941">添加用户标签</a>
+        </td>
+        <td>Push.AddUserTags</td>
+        <td>
+            <ul>
+                <li>管理员给用户添加标签。</li>
+                <li>每次请求最多只能给100个用户添加标签，请求体中单个用户添加标签数最多为10个。</li>
+                <li>单个用户可设置最大标签数为100个，若用户当前标签超过100，则添加新标签之前请先删除旧标签。</li>
+                <li>单个标签最大长度为50字节。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/45942">删除用户标签</a>
+        </td>
+        <td>Push.DeleteUserTags</td>
+        <td>管理员给用户删除标签。注意每次最多只能给100个用户删除标签。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/45943">删除用户所有标签</a>
+        </td>
+        <td>Push.DeleteUserAllTags</td>
+        <td>管理员给用户删除所有标签。注意每次最多只能给100个用户删除所有标签。</td>
         <td>√</td>
     </tr>
     <tr>
