@@ -34,8 +34,8 @@ import (
 
 func NewIM() im.IM {
     return im.NewIM(im.Options{
-        AppId:     1400567367,
-        AppSecret: "9c16200a10f74a12100b7987344687a27a09dd3d24c3df57e3d98569dff7acbe",
+        AppId:     0,
+        AppSecret: "",
         UserId:    "administrator",
     })
 }
