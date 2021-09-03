@@ -9,10 +9,12 @@ package push
 
 import (
     "errors"
+    "math/rand"
     "strconv"
     "time"
     
     "github.com/dobyte/tencent-im/enum"
+    "github.com/dobyte/tencent-im/internal/conv"
     "github.com/dobyte/tencent-im/internal/core"
     "github.com/dobyte/tencent-im/types"
 )
@@ -44,7 +46,7 @@ type API interface {
     // 由于全员推送需要下发的帐号数量巨大，下发完全部帐号需要一定时间（根据帐号总数而定，一般在一分钟内）。
     // 点击查看详细文档:
     // https://cloud.tencent.com/document/product/269/45934
-    Push(arg PushArgument) (taskId string, err error)
+    Push(message *message) (taskId string, err error)
     
     // SetAttrNames 设置应用属性名称
     // 每个应用可以设置自定义的用户属性，最多可以有10个。通过本接口可以设置每个属性的名称，设置完成后，即可用于按用户属性推送等。
@@ -122,7 +124,41 @@ func NewPush(client core.Client) API {
 // 由于全员推送需要下发的帐号数量巨大，下发完全部帐号需要一定时间（根据帐号总数而定，一般在一分钟内）。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/45934
-func (a *api) Push(arg PushArgument) (taskId string, err error) {
+func (a *api) Push(message *message) (taskId string, err error) {
+    req := pushReq{}
+    req.FromUserId = message.GetSender()
+    req.MsgLifeTime = message.GetLifeTime()
+    req.MsgTimeStamp = message.timestamp
+    req.OfflinePushInfo = message.offlinePushInfo
+    req.CustomData = conv.String(message.customData)
+    req.MsgSeq = message.seq
+    req.MsgBody = make([]types.MsgBody, 0)
+    req.MsgRandom = message.GetRandom()
+    
+    if message.isSyncOtherMachine {
+        req.SyncOtherMachine = 1
+    } else {
+        req.SyncOtherMachine = 2
+    }
+    
+    if len(message.sendControls) > 0 {
+        req.SendMsgControl = make([]string, 0)
+        for k := range message.sendControls {
+            req.SendMsgControl = append(req.SendMsgControl, k)
+        }
+    }
+    
+    if len(message.forbidCallbacks) > 0 {
+        req.ForbidCallbackControl = make([]string, 0)
+        for k := range message.forbidCallbacks {
+            req.ForbidCallbackControl = append(req.ForbidCallbackControl, k)
+        }
+    }
+    
+    for _, body := range message.body {
+        req.MsgBody = append(req.MsgBody, body)
+    }
+    
     var msgType string
     var msgBody = make([]types.MsgBody, 0)
     
