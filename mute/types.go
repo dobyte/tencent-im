@@ -12,9 +12,9 @@ import "github.com/dobyte/tencent-im/types"
 type (
 	// 设置全局禁言（请求）
 	setNoSpeakingReq struct {
-		UserId          string `json:"Set_Account"`            // （必填）设置禁言配置的帐号
-		PrivateMuteTime *uint  `json:"C2CmsgNospeakingTime"`   // （选填）单聊消息禁言时间，单位为秒，非负整数，最大值为4294967295（十六进制 0xFFFFFFFF） 0表示取消该帐号的单聊消息禁言;4294967295表示该帐号被设置永久禁言;其它值表示该帐号具体的禁言时间
-		GroupMuteTime   *uint  `json:"GroupmsgNospeakingTime"` // （选填）单聊消息禁言时间，单位为秒，非负整数，最大值为4294967295（十六进制 0xFFFFFFFF） 0表示取消该帐号的单聊消息禁言;4294967295表示该帐号被设置永久禁言;其它值表示该帐号具体的禁言时间
+		UserId          string `json:"Set_Account"`                      // （必填）设置禁言配置的帐号
+		PrivateMuteTime *uint  `json:"C2CmsgNospeakingTime,omitempty"`   // （选填）单聊消息禁言时间，单位为秒，非负整数，最大值为4294967295（十六进制 0xFFFFFFFF） 0表示取消该帐号的单聊消息禁言;4294967295表示该帐号被设置永久禁言;其它值表示该帐号具体的禁言时间
+		GroupMuteTime   *uint  `json:"GroupmsgNospeakingTime,omitempty"` // （选填）单聊消息禁言时间，单位为秒，非负整数，最大值为4294967295（十六进制 0xFFFFFFFF） 0表示取消该帐号的单聊消息禁言;4294967295表示该帐号被设置永久禁言;其它值表示该帐号具体的禁言时间
 	}
 	
 	// 设置全局禁言（请求）

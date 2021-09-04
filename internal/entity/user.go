@@ -5,7 +5,7 @@
  * @Desc: 用户
  */
 
-package user
+package entity
 
 import (
 	"fmt"

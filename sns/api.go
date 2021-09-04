@@ -85,39 +85,46 @@ type API interface {
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1643
 	AddFriends(userId string, friends []*Friend, isSingleAdd bool, isForceAdd bool) (results []Result, err error)
+	
 	// ImportFriends 导入好友
 	// 支持批量导入单向好友。
 	// 往同一个用户导入好友时建议采用批量导入的方式，避免并发写导致的写冲突。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/8301
 	ImportFriends(userId string, friends []*Friend) (results []Result, err error)
+	
 	// UpdateFriends 更新好友
 	// 支持批量更新同一用户的多个好友的关系链数据。
 	// 更新一个用户多个好友时，建议采用批量方式，避免并发写导致的写冲突。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/12525
 	UpdateFriends(userId string, friends []*Friend) (results []Result, err error)
+	
 	// DeleteFriends 删除好友
 	// 删除好友，支持单向删除好友和双向删除好友。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1644
 	DeleteFriends(userId string, deleteUserIds []string, deleteType ...DeleteType) (results []Result, err error)
+	
 	// DeleteAllFriends 删除所有好友
 	// 清除指定用户的标配好友数据和自定义好友数据。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1645
 	DeleteAllFriends(userId string, deleteType ...DeleteType) (err error)
+	
 	// CheckFriends 校验好友
 	// 支持批量校验好友关系。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1646
 	CheckFriends(userId string, checkUserIds []string, checkType CheckType) (results []CheckResult, err error)
+	
 	// GetFriends 拉取指定好友
 	// 支持拉取指定好友的好友数据和资料数据。
 	// 建议每次拉取的好友数不超过100，避免因数据量太大导致回包失败。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/8609
 	GetFriends(userId string, friendUserIds []string, tagList []string) (friends []*Friend, err error)
+	
 	// FetchFriends 拉取好友
 	// 分页拉取全量好友数据。
 	// 不支持资料数据的拉取。
@@ -125,35 +132,42 @@ type API interface {
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1647
 	FetchFriends(userId string, startIndex int, sequence ...int) (ret *FetchFriendsRet, err error)
+	
 	// AddBlacklist 添加黑名单
 	// 添加黑名单，支持批量添加黑名单。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/3718
 	AddBlacklist(userId string, blackUserIds []string) (results []Result, err error)
+	
 	// DeleteBlacklist 删除黑名单
 	// 删除指定黑名单。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/3719
 	DeleteBlacklist(userId string, deleteUserIds []string) (results []Result, err error)
+	
 	// FetchBlacklist 拉取黑名单
 	// 支持分页拉取所有黑名单。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/3722
 	FetchBlacklist(userId string, startIndex, maxLimited, lastSequence int) (ret *FetchBlacklistRet, err error)
+	
 	// CheckBlacklist 校验黑名单
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/3725
 	CheckBlacklist(userId string, checkUserIds []string, checkType BlacklistCheckType) (results []CheckResult, err error)
+	
 	// AddGroups 添加分组
 	// 添加分组，支持批量添加分组，并将指定好友加入到新增分组中。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/10107
 	AddGroups(userId string, groupNames []string, groupUserIds ...[]string) (currentSequence int, results []Result, err error)
+	
 	// DeleteGroups 删除分组
 	// 删除指定分组。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/10108
 	DeleteGroups(userId string, groupNames []string) (currentSequence int, err error)
+	
 	// GetGroups 拉取分组
 	// 拉取分组，支持指定分组以及拉取分组下的好友列表。
 	// 点击查看详细文档:

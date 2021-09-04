@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"strings"
 	
-	"github.com/dobyte/tencent-im/user"
+	"github.com/dobyte/tencent-im/internal/entity"
 )
 
 const (
@@ -28,7 +28,7 @@ const (
 )
 
 type Friend struct {
-	user.User
+	entity.User
 	customAttrs map[string]interface{}
 }
 

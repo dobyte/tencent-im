@@ -25,6 +25,7 @@ type API interface {
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/4230
 	SetNoSpeaking(userId string, privateMuteTime, groupMuteTime *uint) (err error)
+	
 	// GetNoSpeaking 查询全局禁言
 	// 查询帐号的单聊消息全局禁言。
 	// 查询帐号的群组消息全局禁言。

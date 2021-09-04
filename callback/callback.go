@@ -8,260 +8,247 @@
 package callback
 
 import (
-    "sync"
+	"encoding/json"
+	"encoding/xml"
+	"errors"
+	"net/http"
+	"net/url"
+	"strconv"
+	"sync"
+	
+	"github.com/dobyte/tencent-im/types"
 )
 
 const (
-    CommandStateStateChange           = "State.StateChange"
-    CommandSnsFriendAdd               = "Sns.CallbackFriendAdd"
-    CommandSnsFriendDelete            = "Sns.CallbackFriendDelete"
-    CommandSnsBlackListAdd            = "Sns.CallbackBlackListAdd"
-    CommandSnsBlackListDelete         = "Sns.CallbackBlackListDelete"
-    CommandC2CBeforeSendMsg           = "C2C.CallbackBeforeSendMsg"
-    CommandC2CAfterSendMsg            = "C2C.CallbackAfterSendMsg"
-    CommandGroupBeforeCreateGroup     = "Group.CallbackBeforeCreateGroup"
-    CommandGroupAfterCreateGroup      = "Group.CallbackAfterCreateGroup"
-    CommandGroupBeforeApplyJoinGroup  = "Group.CallbackBeforeApplyJoinGroup"
-    CommandGroupBeforeInviteJoinGroup = "Group.CallbackBeforeInviteJoinGroup"
-    CommandGroupAfterNewMemberJoin    = "Group.CallbackAfterNewMemberJoin"
-    CommandGroupAfterMemberExit       = "Group.CallbackAfterMemberExit"
-    CommandGroupBeforeSendMsg         = "Group.CallbackBeforeSendMsg"
-    CommandGroupAfterSendMsg          = "Group.CallbackAfterSendMsg"
-    CommandGroupAfterGroupFull        = "Group.CallbackAfterGroupFull"
-    CommandGroupAfterGroupDestroyed   = "Group.CallbackAfterGroupDestroyed"
-    CommandGroupAfterGroupInfoChanged = "Group.CallbackAfterGroupInfoChanged"
+	CommandStateStateChange           = "State.StateChange"
+	CommandSnsFriendAdd               = "Sns.CallbackFriendAdd"
+	CommandSnsFriendDelete            = "Sns.CallbackFriendDelete"
+	CommandSnsBlackListAdd            = "Sns.CallbackBlackListAdd"
+	CommandSnsBlackListDelete         = "Sns.CallbackBlackListDelete"
+	CommandC2CBeforeSendMsg           = "C2C.CallbackBeforeSendMsg"
+	CommandC2CAfterSendMsg            = "C2C.CallbackAfterSendMsg"
+	CommandGroupBeforeCreateGroup     = "Group.CallbackBeforeCreateGroup"
+	CommandGroupAfterCreateGroup      = "Group.CallbackAfterCreateGroup"
+	CommandGroupBeforeApplyJoinGroup  = "Group.CallbackBeforeApplyJoinGroup"
+	CommandGroupBeforeInviteJoinGroup = "Group.CallbackBeforeInviteJoinGroup"
+	CommandGroupAfterNewMemberJoin    = "Group.CallbackAfterNewMemberJoin"
+	CommandGroupAfterMemberExit       = "Group.CallbackAfterMemberExit"
+	CommandGroupBeforeSendMsg         = "Group.CallbackBeforeSendMsg"
+	CommandGroupAfterSendMsg          = "Group.CallbackAfterSendMsg"
+	CommandGroupAfterGroupFull        = "Group.CallbackAfterGroupFull"
+	CommandGroupAfterGroupDestroyed   = "Group.CallbackAfterGroupDestroyed"
+	CommandGroupAfterGroupInfoChanged = "Group.CallbackAfterGroupInfoChanged"
 )
 
 const (
-    EventStateStateChange EventType = iota + 1
-    EventSnsFriendAdd
-    EventSnsFriendDelete
-    EventSnsBlackListAdd
-    EventSnsBlackListDelete
-    EventC2CBeforeSendMsg
-    EventC2CAfterSendMsg
-    EventGroupBeforeCreateGroup
-    EventGroupAfterCreateGroup
-    EventGroupBeforeApplyJoinGroup
-    EventGroupBeforeInviteJoinGroup
-    EventGroupAfterNewMemberJoin
-    EventGroupAfterMemberExit
-    EventGroupBeforeSendMsg
-    EventGroupAfterSendMsg
-    EventGroupAfterGroupFull
-    EventGroupAfterGroupDestroyed
-    EventGroupAfterGroupInfoChanged
+	EventStateStateChange EventType = iota + 1
+	EventSnsFriendAdd
+	EventSnsFriendDelete
+	EventSnsBlackListAdd
+	EventSnsBlackListDelete
+	EventC2CBeforeSendMsg
+	EventC2CAfterSendMsg
+	EventGroupBeforeCreateGroup
+	EventGroupAfterCreateGroup
+	EventGroupBeforeApplyJoinGroup
+	EventGroupBeforeInviteJoinGroup
+	EventGroupAfterNewMemberJoin
+	EventGroupAfterMemberExit
+	EventGroupBeforeSendMsg
+	EventGroupAfterSendMsg
+	EventGroupAfterGroupFull
+	EventGroupAfterGroupDestroyed
+	EventGroupAfterGroupInfoChanged
 )
 
 const (
-    ReplySuccess = "OK"
-    ReplyFailure = "FAIL"
-    
-    queryAppId       = "SdkAppid"
-    queryCommand     = "CallbackCommand"
-    queryClientId    = "ClientIP"
-    queryOptPlatform = "OptPlatform"
-    queryContentType = "contenttype"
+	AckSuccess = "OK"
+	AckFailure = "FAIL"
+	
+	queryAppId       = "SdkAppid"
+	queryCommand     = "CallbackCommand"
+	queryClientId    = "ClientIP"
+	queryOptPlatform = "OptPlatform"
+	queryContentType = "contenttype"
 )
 
-type (
-    EventType        int
-    EventHandlerFunc func(data interface{}) (*Reply, error)
-    Options          struct {
-        SdkAppId int
-    }
-    Reply struct {
-        ActionStatus string `json:"ActionStatus"`
-        ErrorInfo    string `json:"ErrorInfo"`
-        ErrorCode    int    `json:"ErrorCode"`
-    }
-    Callback struct {
-        opt      *Options
-        lock     sync.Mutex
-        handlers map[EventType]EventHandlerFunc
-    }
-)
+//type (
+//	EventType        int
+//	EventHandlerFunc func(data interface{}) (*Reply, error)
+//	Options          struct {
+//		SdkAppId int
+//	}
+//
+//	API interface {
+//	}
+//
+//	api struct {
+//		appId    int
+//		lock     sync.Mutex
+//		handlers map[EventType]EventHandlerFunc
+//	}
+//)
+//
+//func NewAPI(appId int) *API {
+//	return &api{
+//		appId:    appId,
+//		handlers: make(map[EventType]EventHandlerFunc),
+//	}
+//}
 
-func NewCallback(opt *Options) *Callback {
-    return &Callback{
-        opt:      opt,
-        handlers: make(map[EventType]EventHandlerFunc),
-    }
-}
-
-//// Register register an event handler.
-//func (c *Callback) Register(event EventType, handler EventHandlerFunc) {
-//    c.lock.Lock()
-//    defer c.lock.Unlock()
-//    c.handlers[event] = handler
+//// Register 注册事件
+//func (a *api) Register(event EventType, handler EventHandlerFunc) {
+//	a.lock.Lock()
+//	defer a.lock.Unlock()
+//	a.handlers[event] = handler
 //}
 //
 //// SyncListen wait a callback request.
-//func (c *Callback) SyncListen(request *http.Request) {
-//    queries := request.URL.Query()
+//func (a *api) SyncListen(r *http.Request) {
+//	appId, ok := a.getQuery(r, queryAppId)
+//	if !ok || appId != strconv.Itoa(a.appId) {
+//		_ = a.AckFailure(r.Response. , 0 , "invalid sdk appid")
+//		c.ReplyFailure(0, "invalid sdk appid")
+//		return
+//	}
 //
-//    appId, ok := c.GetQuery(queries, queryAppId)
-//    if !ok || appId != c.opt.SdkAppId {
-//        c.ReplyFailure(0, "invalid sdk appid")
-//        return
-//    }
+//	command, ok := c.GetQuery(r, queryCommand)
+//	if !ok {
+//		c.ReplyFailure(0, "invalid callback command")
+//		return
+//	}
 //
-//    command, ok := c.GetQuery(queries, queryCommand)
-//    if !ok {
-//        c.ReplyFailure(0, "invalid callback command")
-//        return
-//    }
-//
-//    if event, data, err := c.parseCommand(command); err != nil {
-//        c.ReplyFailure(0, err.Error())
-//        return
-//    } else {
-//        if ret, err := c.handleEvent(event, data); err != nil {
-//            c.ReplyFailure(0, err.Error())
-//            return
-//        } else {
-//            c.Reply(ret)
-//            return
-//        }
-//    }
+//	if event, data, err := c.parseCommand(command); err != nil {
+//		c.ReplyFailure(0, err.Error())
+//		return
+//	} else {
+//		if ret, err := c.handleEvent(event, data); err != nil {
+//			c.ReplyFailure(0, err.Error())
+//			return
+//		} else {
+//			c.Reply(ret)
+//			return
+//		}
+//	}
 //}
 //
-//func (c *Callback) AsyncListen(request *http.Request) {
+//func (c *api) AsyncListen(request *http.Request) {
 //
 //}
 //
-//// handleEvent handle an event.
-//func (c *Callback) handleEvent(event EventType, data interface{}) (*Reply, error) {
-//    if fn, ok := c.handlers[event]; ok {
-//        return fn(data)
-//    }
+//// handleEvent 处理监听事件
+//func (c *api) handleEvent(event EventType, data interface{}) (*Reply, error) {
+//	if fn, ok := c.handlers[event]; ok {
+//		return fn(data)
+//	}
 //
-//    return nil, nil
+//	return nil, nil
 //}
 //
 //// parseCommand parse command and body package.
-//func (c *Callback) parseCommand(command string) (EventType, interface{}, error) {
-//    var (
-//        err   error
-//        event EventType
-//        body  []byte
-//        data  interface{}
-//    )
+//func (c *api) parseCommand(command string) (EventType, interface{}, error) {
+//	var (
+//		err   error
+//		event EventType
+//		body  []byte
+//		data  interface{}
+//	)
 //
-//    switch command {
-//    case CommandStateStateChange:
-//        event = EventStateStateChange
-//        data = StateStateChange{}
+//	switch command {
+//	case CommandStateStateChange:
+//		event = EventStateStateChange
+//		data = StateChange{}
+//	case CommandSnsFriendAdd:
+//		event = EventSnsFriendAdd
+//		data = SnsFriendAdd{}
+//	case CommandSnsFriendDelete:
+//		event = EventSnsFriendDelete
+//		data = SnsFriendDelete{}
+//	case CommandSnsBlackListAdd:
+//		event = EventSnsBlackListAdd
+//		data = SnsBlackListAdd{}
+//	case CommandSnsBlackListDelete:
+//		event = EventSnsBlackListDelete
+//		data = SnsBlackListDelete{}
+//	case CommandC2CBeforeSendMsg:
+//		event = EventC2CBeforeSendMsg
+//		data = C2CBeforeSendMsg{}
+//	case CommandC2CAfterSendMsg:
+//		event = EventC2CAfterSendMsg
+//		data = C2CAfterSendMsg{}
+//	case CommandGroupBeforeCreateGroup:
+//		event = EventGroupBeforeCreateGroup
+//		data = GroupBeforeCreateGroup{}
+//	case CommandGroupAfterCreateGroup:
+//		event = EventGroupAfterCreateGroup
+//		data = GroupAfterCreateGroup{}
+//	case CommandGroupBeforeApplyJoinGroup:
+//		event = EventGroupBeforeApplyJoinGroup
+//		data = GroupBeforeApplyJoinGroup{}
+//	case CommandGroupBeforeInviteJoinGroup:
+//		event = EventGroupBeforeInviteJoinGroup
+//		data = GroupBeforeInviteJoinGroup{}
+//	case CommandGroupAfterNewMemberJoin:
+//		event = EventGroupAfterNewMemberJoin
+//		data = GroupAfterNewMemberJoin{}
+//	case CommandGroupAfterMemberExit:
+//		event = EventGroupAfterMemberExit
+//		data = GroupAfterMemberExit{}
+//	case CommandGroupBeforeSendMsg:
+//		event = EventGroupBeforeSendMsg
+//		data = GroupBeforeSendMsg{}
+//	case CommandGroupAfterSendMsg:
+//		event = EventGroupAfterSendMsg
+//		data = GroupAfterSendMsg{}
+//	case CommandGroupAfterGroupFull:
+//		event = EventGroupAfterGroupFull
+//		data = GroupAfterGroupFull{}
+//	case CommandGroupAfterGroupDestroyed:
+//		event = EventGroupAfterGroupDestroyed
+//		data = GroupAfterGroupDestroyed{}
+//	case CommandGroupAfterGroupInfoChanged:
+//		event = EventGroupAfterGroupInfoChanged
+//		data = GroupAfterGroupInfoChanged{}
+//	default:
+//		return 0, nil, errors.New("invalid callback command")
+//	}
 //
-//    case CommandSnsFriendAdd:
-//        event = EventSnsFriendAdd
-//        data = SnsFriendAdd{}
+//	if err = json.Unmarshal(body, &data); err != nil {
+//		return 0, nil, err
+//	}
 //
-//    case CommandSnsFriendDelete:
-//        event = EventSnsFriendDelete
-//        data = SnsFriendDelete{}
-//
-//    case CommandSnsBlackListAdd:
-//        event = EventSnsBlackListAdd
-//        data = SnsBlackListAdd{}
-//
-//    case CommandSnsBlackListDelete:
-//        event = EventSnsBlackListDelete
-//        data = SnsBlackListDelete{}
-//
-//    case CommandC2CBeforeSendMsg:
-//        event = EventC2CBeforeSendMsg
-//        data = C2CBeforeSendMsg{}
-//
-//    case CommandC2CAfterSendMsg:
-//        event = EventC2CAfterSendMsg
-//        data = C2CAfterSendMsg{}
-//
-//    case CommandGroupBeforeCreateGroup:
-//        event = EventGroupBeforeCreateGroup
-//        data = GroupBeforeCreateGroup{}
-//
-//    case CommandGroupAfterCreateGroup:
-//        event = EventGroupAfterCreateGroup
-//        data = GroupAfterCreateGroup{}
-//
-//    case CommandGroupBeforeApplyJoinGroup:
-//        event = EventGroupBeforeApplyJoinGroup
-//        data = GroupBeforeApplyJoinGroup{}
-//
-//    case CommandGroupBeforeInviteJoinGroup:
-//        event = EventGroupBeforeInviteJoinGroup
-//        data = GroupBeforeInviteJoinGroup{}
-//
-//    case CommandGroupAfterNewMemberJoin:
-//        event = EventGroupAfterNewMemberJoin
-//        data = GroupAfterNewMemberJoin{}
-//
-//    case CommandGroupAfterMemberExit:
-//        event = EventGroupAfterMemberExit
-//        data = GroupAfterMemberExit{}
-//
-//    case CommandGroupBeforeSendMsg:
-//        event = EventGroupBeforeSendMsg
-//        data = GroupBeforeSendMsg{}
-//
-//    case CommandGroupAfterSendMsg:
-//        event = EventGroupAfterSendMsg
-//        data = GroupAfterSendMsg{}
-//
-//    case CommandGroupAfterGroupFull:
-//        event = EventGroupAfterGroupFull
-//        data = GroupAfterGroupFull{}
-//
-//    case CommandGroupAfterGroupDestroyed:
-//        event = EventGroupAfterGroupDestroyed
-//        data = GroupAfterGroupDestroyed{}
-//
-//    case CommandGroupAfterGroupInfoChanged:
-//        event = EventGroupAfterGroupInfoChanged
-//        data = GroupAfterGroupInfoChanged{}
-//    default:
-//        return 0, nil, errors.New("invalid callback command")
-//    }
-//
-//    if err = json.Unmarshal(body, &data); err != nil {
-//        return 0, nil, err
-//    }
-//
-//    return event, data, nil
+//	return event, data, nil
 //}
 //
-//// ReplySuccess reply success to client.
-//func (c *Callback) ReplySuccess(code int, info string) {
-//    c.Reply(&Reply{
-//        ActionStatus: ReplySuccess,
-//        ErrorCode:    code,
-//        ErrorInfo:    info,
-//    })
+//// AckSuccess 应答失败
+//func (a *api) AckFailure(w http.ResponseWriter, code int, message ...string) error {
+//	return a.Ack(w, AckFailure, code, message...)
 //}
 //
-//// ReplyFailure reply failure to client.
-//func (c *Callback) ReplyFailure(code int, info string) {
-//    c.Reply(&Reply{
-//        ActionStatus: ReplyFailure,
-//        ErrorCode:    code,
-//        ErrorInfo:    info,
-//    })
+//// AckSuccess 应答成功
+//func (a *api) AckSuccess(w http.ResponseWriter, code int, message ...string) error {
+//	return a.Ack(w, AckSuccess, code, message...)
 //}
 //
-//func (c *Callback) Reply(reply *Reply) {
-//
+//// Ack 应答
+//func (a *api) Ack(w http.ResponseWriter, status string, code int, message ...string) error {
+//	ack := types.ActionBaseResp{}
+//	ack.ActionStatus = status
+//	ack.ErrorCode = code
+//	if len(message) > 0 {
+//		ack.ErrorInfo = message[0]
+//	}
+//	b, _ := json.Marshal(ack)
+//	w.WriteHeader(http.StatusOK)
+//	_, err := w.Write(b)
+//	return err
 //}
 //
-//func (c *Callback) Response(request *http.Request) {
-//    // request.Response.Write()
-//
-//}
-//
-//// GetQuery Retrieves a query value from the request.
-//func (c *Callback) GetQuery(queries url.Values, key string) (string, bool) {
-//    if values, ok := queries[key]; ok {
-//        return values[0], ok
-//    }
-//    return "", false
+//// GetQuery 获取查询参数
+//func (a *api) getQuery(r *http.Request, key string) (string, bool) {
+//	if values, ok := r.URL.Query()[key]; ok {
+//		return values[0], ok
+//	} else {
+//		return "", false
+//	}
 //}

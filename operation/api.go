@@ -36,11 +36,13 @@ type API interface {
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/4193
 	GetOperationData(fields ...[]string) (data []OperationData, err error)
+	
 	// GetHistoryData 下载最近消息记录
 	// App 管理员可以通过该接口获取 App 中最近7天中某天某小时的所有单发或群组消息记录的下载地址
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1650
 	GetHistoryData(chatType ChatType, msgTime time.Time) (files []HistoryFile, err error)
+	
 	// GetIPList 获取服务器IP地址
 	// 基于安全等考虑，您可能需要获知服务器的 IP 地址列表，以便进行相关限制。
 	// App 管理员可以通过该接口获得 SDK、第三方回调所使用到的服务器 IP 地址列表或 IP 网段信息。

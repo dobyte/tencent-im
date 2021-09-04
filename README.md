@@ -390,7 +390,25 @@ func main() {
         <td>√</td>
     </tr>
     <tr>
-        <td rowspan="9">全员推送</td>
+            <td rowspan="10">全员推送</td>
+            <td>
+                <a href="https://cloud.tencent.com/document/product/269/45934">设置应用属性名称</a>
+            </td>
+            <td>Push.PushMessage</td>
+            <td>
+                <ul>
+                    <li>支持全员推送。</li>
+                    <li>支持按用户属性推送。</li>
+                    <li>支持按用户标签推送。</li>
+                    <li>管理员推送消息，接收方看到消息发送者是管理员。</li>
+                    <li>管理员指定某一帐号向其他帐号推送消息，接收方看到发送者不是管理员，而是管理员指定的帐号。</li>
+                    <li>支持消息离线存储，不支持漫游。</li>
+                    <li>由于全员推送需要下发的帐号数量巨大，下发完全部帐号需要一定时间（根据帐号总数而定，一般在一分钟内）。</li>
+                </ul>
+            </td>
+            <td>√</td>
+        </tr>
+    <tr>
         <td>
             <a href="https://cloud.tencent.com/document/product/269/45935">设置应用属性名称</a>
         </td>

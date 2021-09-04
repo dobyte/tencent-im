@@ -24,6 +24,7 @@ type API interface {
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1640
 	SetProfile(profile *profile) (err error)
+	
 	// GetProfiles 拉取资料
 	// 支持拉取好友和非好友的资料字段。
 	// 支持拉取 标配资料字段 和 自定义资料字段。

@@ -30,28 +30,33 @@ type API interface {
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1608
 	ImportAccount(account AccountInfo) (err error)
+	
 	// ImportAccounts 导入多个帐号
 	// 本接口用于批量将 App 自有帐号导入即时通信 IM 帐号系统，
 	// 为该帐号创建一个对应的内部 ID，使该帐号能够使用即时通信 IM 服务。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/4919
 	ImportAccounts(userIds []string) (failUserIds []string, err error)
+	
 	// DeleteAccounts 删除多个帐号
 	// 仅支持删除套餐包类型为 IM 体验版的帐号，其他类型的账号（如：TRTC、白板、专业版、旗舰版）无法删除。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/36443
 	DeleteAccounts(userIds []string) (results []DeleteResult, err error)
+	
 	// CheckAccounts 查询多个帐号.
 	// 用于查询自有帐号是否已导入即时通信 IM，支持批量查询。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/38417
 	CheckAccounts(userIds []string) (results []CheckResult, err error)
+	
 	// KickAccount 使帐号登录状态失效
 	// 本接口适用于将 App 用户帐号的登录状态（例如 UserSig）失效。
 	// 例如，开发者判断一个用户为恶意帐号后，可以调用本接口将该用户当前的登录状态失效，这样用户使用历史 UserSig 登录即时通信 IM 会失败。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/3853
 	KickAccount(userId string) (err error)
+	
 	// GetAccountsOnlineState 查询多个帐号在线状态
 	// 获取用户当前的登录状态。
 	// 点击查看详细文档:
