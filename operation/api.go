@@ -22,14 +22,6 @@ const (
 	commandGetIPList     = "GetIPList"
 )
 
-type ChatType string
-
-const (
-	// 聊天类型
-	ChatTypePrivate = "C2C"   // 单聊消息
-	ChatTypeGroup   = "Group" // 群聊消息
-)
-
 type API interface {
 	// GetOperationData 拉取运营数据
 	// App 管理员可以通过该接口拉取最近30天的运营数据，可拉取的字段见下文可拉取的运营字段。

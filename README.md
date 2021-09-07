@@ -28,7 +28,7 @@ func main() {
     })
     
     // 导入账号
-    if err := tim.Account().ImportAccount(account.AccountInfo{
+    if err := tim.Account().ImportAccount(account.Info{
         UserId:    "test1",
         Nickname:  "测试账号1",
         AvatarUrl: "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png",
@@ -48,14 +48,14 @@ func main() {
 
 <table>
     <tr>
-        <td>模块</td>
-        <td>名称</td>
+        <td width="7%">模块</td>
+        <td width="7%">名称</td>
         <td>方法</td>
         <td>说明</td>
         <td width="5%">master</td>
     </tr>
     <tr>
-        <td rowspan="6">账号管理</td>
+        <td rowspan="9">账号管理</td>
         <td>
             <a href="https://cloud.tencent.com/document/product/269/1608">导入单个帐号</a>
         </td>
@@ -73,7 +73,20 @@ func main() {
     </tr>
     <tr>
         <td>
-            <a href="https://cloud.tencent.com/document/product/269/36443">删除帐号</a>
+            <a href="https://cloud.tencent.com/document/product/269/36443">删除单个帐号</a>
+        </td>
+        <td>Account.DeleteAccount</td>
+        <td>
+            <ul>
+                <li>本方法拓展于“删除多个帐号（DeleteAccounts）”方法。</li>
+                <li>仅支持删除套餐包类型为 IM 体验版的帐号，其他类型的账号（如：TRTC、白板、专业版、旗舰版）无法删除。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/36443">删除多个帐号</a>
         </td>
         <td>Account.DeleteAccounts</td>
         <td>仅支持删除套餐包类型为 IM 体验版的帐号，其他类型的账号（如：TRTC、白板、专业版、旗舰版）无法删除。</td>
@@ -81,7 +94,20 @@ func main() {
     </tr>
     <tr>
         <td>
-            <a href="https://cloud.tencent.com/document/product/269/38417">查询帐号</a>
+            <a href="https://cloud.tencent.com/document/product/269/38417">查询单个帐号导入状态</a>
+        </td>
+        <td>Account.CheckAccount</td>
+        <td>
+            <ul>
+                <li>本方法拓展于“查询多个帐号导入状态（CheckAccounts）”方法。</li>
+                <li>用于查询自有帐号是否已导入即时通信 IM。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/38417">查询多个帐号导入状态</a>
         </td>
         <td>Account.CheckAccounts</td>
         <td>用于查询自有帐号是否已导入即时通信 IM，支持批量查询。</td>
@@ -97,7 +123,20 @@ func main() {
     </tr>
     <tr>
         <td>
-            <a href="https://cloud.tencent.com/document/product/269/2566">查询帐号在线状态</a>
+            <a href="https://cloud.tencent.com/document/product/269/2566">查询单个帐号在线状态</a>
+        </td>
+        <td>Account.GetAccountOnlineState</td>
+        <td>
+            <ul>
+                <li>本方法拓展于“查询多个帐号在线状态（GetAccountsOnlineState）”方法。</li>
+                <li>获取用户当前的登录状态。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/2566">查询多个帐号在线状态</a>
         </td>
         <td>Account.GetAccountsOnlineState</td>
         <td>获取用户当前的登录状态。</td>
@@ -128,9 +167,22 @@ func main() {
         <td>√</td>
     </tr>
     <tr>
-        <td rowspan="15">关系链管理</td>
+        <td rowspan="21">关系链管理</td>
         <td>
-            <a href="https://cloud.tencent.com/document/product/269/1643">添加好友</a>
+            <a href="https://cloud.tencent.com/document/product/269/1643">添加单个好友</a>
+        </td>
+        <td>SNS.AddFriend</td>
+        <td>
+            <ul>
+                <li>本方法拓展于“添加多个好友（AddFriends）”方法。</li>
+                <li>添加好友，仅支持添加单个好友</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1643">添加多个好友</a>
         </td>
         <td>SNS.AddFriends</td>
         <td>添加好友，支持批量添加好友。</td>
@@ -138,7 +190,15 @@ func main() {
     </tr>
     <tr>
         <td>
-            <a href="https://cloud.tencent.com/document/product/269/8301">导入好友</a>
+            <a href="https://cloud.tencent.com/document/product/269/8301">导入单个好友</a>
+        </td>
+        <td>SNS.ImportFriend</td>
+        <td>本方法拓展于“添加多个好友（ImportFriends）”方法。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/8301">导入多个好友</a>
         </td>
         <td>SNS.ImportFriends</td>
         <td>
@@ -151,7 +211,19 @@ func main() {
     </tr>
     <tr>
         <td>
-            <a href="https://cloud.tencent.com/document/product/269/12525">更新好友</a>
+            <a href="https://cloud.tencent.com/document/product/269/12525">更新单个好友</a>
+        </td>
+        <td>SNS.UpdateFriend</td>
+        <td>
+            <ul>
+                <li>本方法拓展于“更新多个好友（UpdateFriends）”方法。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/12525">更新多个好友</a>
         </td>
         <td>SNS.UpdateFriends</td>
         <td>
@@ -164,7 +236,15 @@ func main() {
     </tr>
     <tr>
         <td>
-            <a href="https://cloud.tencent.com/document/product/269/1644">删除好友</a>
+            <a href="https://cloud.tencent.com/document/product/269/1644">删除单个好友</a>
+        </td>
+        <td>SNS.DeleteFriend</td>
+        <td>本方法拓展于“删除多个好友（DeleteFriends）”方法。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1644">删除多个好友</a>
         </td>
         <td>SNS.DeleteFriends</td>
         <td>删除好友，支持单向删除好友和双向删除好友。</td>
@@ -180,7 +260,15 @@ func main() {
     </tr>
     <tr>
         <td>
-            <a href="https://cloud.tencent.com/document/product/269/1646">校验好友</a>
+            <a href="https://cloud.tencent.com/document/product/269/1646">校验单个好友</a>
+        </td>
+        <td>SNS.CheckFriend</td>
+        <td>本方法拓展于“校验多个好友（CheckFriends）”方法。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1646">校验多个好友</a>
         </td>
         <td>SNS.CheckFriends</td>
         <td>支持批量校验好友关系。</td>
@@ -202,7 +290,20 @@ func main() {
     </tr>
     <tr>
         <td>
-            <a href="https://cloud.tencent.com/document/product/269/8609">拉取指定好友</a>
+            <a href="https://cloud.tencent.com/document/product/269/8609">拉取单个指定好友</a>
+        </td>
+        <td>SNS.GetFriend</td>
+        <td>
+            <ul>
+                <li>本方法拓展于“拉取多个指定好友（GetFriends）”方法。</li>
+                <li>支持拉取指定好友的好友数据和资料数据。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/8609">拉取多个指定好友</a>
         </td>
         <td>SNS.GetFriends</td>
         <td>

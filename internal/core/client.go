@@ -16,19 +16,17 @@ import (
     
     "github.com/dobyte/http"
     
+    "github.com/dobyte/tencent-im/internal/enum"
     "github.com/dobyte/tencent-im/internal/sign"
-    "github.com/dobyte/tencent-im/types"
+    "github.com/dobyte/tencent-im/internal/types"
 )
 
 const (
-    defaultBaseUrl      = "https://console.tim.qq.com"
-    defaultVersion      = "v4"
-    defaultTimeout      = 5
-    defaultContentType  = "json"
-    defaultExpire       = 60
-    SuccessActionStatus = "OK"
-    FailActionStatus    = "FAIL"
-    SuccessCode         = 0
+    defaultBaseUrl     = "https://console.tim.qq.com"
+    defaultVersion     = "v4"
+    defaultTimeout     = 5
+    defaultContentType = "json"
+    defaultExpire      = 60
 )
 
 var invalidResponse = errors.New("invalid response")
@@ -112,15 +110,15 @@ func (c *client) request(method, serviceName, command string, data, resp interfa
     }
     
     if r, ok := resp.(types.ActionBaseRespInterface); ok {
-        if r.GetActionStatus() == FailActionStatus {
+        if r.GetActionStatus() == enum.FailActionStatus {
             return NewError(r.GetErrorCode(), r.GetErrorInfo())
         }
         
-        if r.GetErrorCode() != SuccessCode {
+        if r.GetErrorCode() != enum.SuccessCode {
             return NewError(r.GetErrorCode(), r.GetErrorInfo())
         }
     } else if r, ok := resp.(types.BaseRespInterface); ok {
-        if r.GetErrorCode() != SuccessCode {
+        if r.GetErrorCode() != enum.SuccessCode {
             return NewError(r.GetErrorCode(), r.GetErrorInfo())
         }
     } else {

@@ -15,17 +15,17 @@ import (
 
 var errInvalidPushCondition = errors.New("attrs and tags condition cannot be set at the same time")
 
-type message struct {
+type Message struct {
 	entity.Message
 	condition *condition
 }
 
-func NewMessage() *message {
-	return &message{}
+func NewMessage() *Message {
+	return &Message{}
 }
 
 // SetConditionTagsOr 设置标签的或条件（设置会冲掉之前的标签或条件）
-func (m *message) SetConditionTagsOr(tags ...string) {
+func (m *Message) SetConditionTagsOr(tags ...string) {
 	if m.condition != nil && m.condition.TagsOr != nil {
 		m.condition.TagsOr = m.condition.TagsOr[0:0]
 	}
@@ -34,7 +34,7 @@ func (m *message) SetConditionTagsOr(tags ...string) {
 }
 
 // AddConditionTagsOr 添加标签的或条件（添加会累加之前的条件或条件）
-func (m *message) AddConditionTagsOr(tags ...string) {
+func (m *Message) AddConditionTagsOr(tags ...string) {
 	if m.condition == nil {
 		m.condition = &condition{}
 	}
@@ -45,7 +45,7 @@ func (m *message) AddConditionTagsOr(tags ...string) {
 }
 
 // SetConditionTagsAnd 设置标签的与条件（设置会冲掉之前的标签与条件）
-func (m *message) SetConditionTagsAnd(tags ...string) {
+func (m *Message) SetConditionTagsAnd(tags ...string) {
 	if m.condition != nil && m.condition.TagsAnd != nil {
 		m.condition.TagsAnd = m.condition.TagsAnd[0:0]
 	}
@@ -54,7 +54,7 @@ func (m *message) SetConditionTagsAnd(tags ...string) {
 }
 
 // AddConditionTagsAnd 添加标签的与条件（添加会累加之前的标签与条件）
-func (m *message) AddConditionTagsAnd(tags ...string) {
+func (m *Message) AddConditionTagsAnd(tags ...string) {
 	if m.condition == nil {
 		m.condition = &condition{}
 	}
@@ -65,7 +65,7 @@ func (m *message) AddConditionTagsAnd(tags ...string) {
 }
 
 // SetConditionAttrsOr 设置属性的或条件（设置会冲掉之前的属性或条件）
-func (m *message) SetConditionAttrsOr(attrs map[string]interface{}) {
+func (m *Message) SetConditionAttrsOr(attrs map[string]interface{}) {
 	if m.condition != nil && m.condition.AttrsOr != nil {
 		m.condition.AttrsOr = make(map[string]interface{})
 	}
@@ -74,7 +74,7 @@ func (m *message) SetConditionAttrsOr(attrs map[string]interface{}) {
 }
 
 // AddConditionAttrsOr 添加属性的或条件（添加会累加之前的属性或条件）
-func (m *message) AddConditionAttrsOr(attrs map[string]interface{}) {
+func (m *Message) AddConditionAttrsOr(attrs map[string]interface{}) {
 	if m.condition == nil {
 		m.condition = &condition{}
 	}
@@ -87,7 +87,7 @@ func (m *message) AddConditionAttrsOr(attrs map[string]interface{}) {
 }
 
 // SetConditionAttrsAnd 设置属性的与条件（设置会冲掉之前的属性与条件）
-func (m *message) SetConditionAttrsAnd(attrs map[string]interface{}) {
+func (m *Message) SetConditionAttrsAnd(attrs map[string]interface{}) {
 	if m.condition != nil && m.condition.AttrsAnd != nil {
 		m.condition.AttrsAnd = make(map[string]interface{})
 	}
@@ -96,7 +96,7 @@ func (m *message) SetConditionAttrsAnd(attrs map[string]interface{}) {
 }
 
 // AddConditionAttrsAnd 添加属性的与条件（添加会累加之前的属性与条件）
-func (m *message) AddConditionAttrsAnd(attrs map[string]interface{}) {
+func (m *Message) AddConditionAttrsAnd(attrs map[string]interface{}) {
 	if m.condition == nil {
 		m.condition = &condition{}
 	}
@@ -109,12 +109,12 @@ func (m *message) AddConditionAttrsAnd(attrs map[string]interface{}) {
 }
 
 // GetCondition 获取推送条件
-func (m *message) GetCondition() *condition {
+func (m *Message) GetCondition() *condition {
 	return m.condition
 }
 
 // CheckError 检测错误
-func (m *message) CheckError() (err error) {
+func (m *Message) CheckError() (err error) {
 	if err = m.CheckArgError(); err != nil {
 		return
 	}
@@ -127,7 +127,7 @@ func (m *message) CheckError() (err error) {
 }
 
 // checkConditionArgError 检测条件参数错误
-func (m *message) checkConditionArgError() error {
+func (m *Message) checkConditionArgError() error {
 	hasAttrs, hasTags := false, false
 	
 	if m.condition != nil {
