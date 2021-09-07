@@ -103,7 +103,7 @@ type api struct {
     client core.Client
 }
 
-func NewPush(client core.Client) API {
+func NewAPI(client core.Client) API {
     return &api{client: client}
 }
 

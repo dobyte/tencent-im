@@ -15,6 +15,7 @@ import (
     
     "github.com/dobyte/tencent-im"
     "github.com/dobyte/tencent-im/account"
+    "github.com/dobyte/tencent-im/group"
     "github.com/dobyte/tencent-im/operation"
     "github.com/dobyte/tencent-im/private"
     "github.com/dobyte/tencent-im/profile"
@@ -993,4 +994,30 @@ func TestIm_Private_GetUnreadMessageNum(t *testing.T) {
     t.Log(ret.Total)
     t.Log(ret.UnreadList)
     t.Log(ret.ErrorList)
+}
+
+func TestIm_Group_CreateGroup(t *testing.T) {
+    g := group.NewGroup()
+    g.SetName("测试群1")
+    g.SetType(group.GroupTypePublic)
+    g.SetMaxMemberCount(30)
+    g.SetAvatar("http://www.baidu.com")
+    // g.SetId("test_group1")
+    g.SetIntroduction("这是一个测试群")
+    g.SetNotification("这是一个测试群公告")
+    
+    for i := 1; i < 10; i++ {
+        member := group.NewMember()
+        member.SetUserId("test" + strconv.Itoa(i))
+        member.SetJoinTime(time.Now())
+        g.AddMembers(member)
+    }
+    
+    id, err := NewIM().Group().CreateGroup(g)
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    
+    t.Log(id)
 }

@@ -9,6 +9,7 @@ package im
 
 import (
     "github.com/dobyte/tencent-im/account"
+    "github.com/dobyte/tencent-im/group"
     "github.com/dobyte/tencent-im/internal/core"
     "github.com/dobyte/tencent-im/mute"
     "github.com/dobyte/tencent-im/operation"
@@ -28,6 +29,8 @@ type (
         Mute() mute.API
         // Push 获取全员推送接口
         Push() push.API
+        // Group 获取群组管理接口
+        Group() group.API
         // Account 获取账号管理接口
         Account() account.API
         // Profile 获取资料管理接口
@@ -75,7 +78,12 @@ func (i *im) Mute() mute.API {
 
 // Push 获取全员推送接口
 func (i *im) Push() push.API {
-    return push.NewPush(i.client)
+    return push.NewAPI(i.client)
+}
+
+// Group 获取群组管理接口
+func (i *im) Group() group.API {
+    return group.NewAPI(i.client)
 }
 
 // Account 获取账号管理接口
