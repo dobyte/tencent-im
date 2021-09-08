@@ -996,13 +996,14 @@ func TestIm_Private_GetUnreadMessageNum(t *testing.T) {
     t.Log(ret.ErrorList)
 }
 
+// 创建群组
 func TestIm_Group_CreateGroup(t *testing.T) {
     g := group.NewGroup()
     g.SetName("测试群1")
     g.SetType(group.GroupTypePublic)
     g.SetMaxMemberCount(30)
     g.SetAvatar("http://www.baidu.com")
-    // g.SetId("test_group1")
+    g.SetId("test_group1")
     g.SetIntroduction("这是一个测试群")
     g.SetNotification("这是一个测试群公告")
     
@@ -1020,4 +1021,84 @@ func TestIm_Group_CreateGroup(t *testing.T) {
     }
     
     t.Log(id)
+}
+
+// 解散单个群
+func TestIm_Group_DestroyGroup(t *testing.T) {
+    err := NewIM().Group().DestroyGroup("test_group1")
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    
+    t.Log("Success")
+}
+
+// 获取单个群详细资料
+func TestIm_Group_GetGroup(t *testing.T) {
+    g, err := NewIM().Group().GetGroup("test_group1")
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    
+    if g != nil {
+        t.Log(g.GetId())
+        t.Log(g.GetName())
+        t.Log(g.GetType())
+        t.Log(g.GetOwner())
+        t.Log(g.GetAvatar())
+    }
+}
+
+// 获取多个群详细资料
+func TestIm_Group_GetGroups(t *testing.T) {
+    groups, err := NewIM().Group().GetGroups([]string{
+        "test_group1",
+    })
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    
+    for _, g := range groups {
+        if err = g.GetError(); err != nil {
+            t.Error(err)
+        } else {
+            t.Log(g.GetId())
+            t.Log(g.GetName())
+            t.Log(g.GetType())
+            t.Log(g.GetOwner())
+            t.Log(g.GetAvatar())
+        }
+    }
+}
+
+// 添加群成员
+func TestIm_Group_AddGroupMembers(t *testing.T) {
+    results, err := NewIM().Group().AddGroupMembers("test_group1", []string{
+        test1,
+        test2,
+    }, true)
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    
+    t.Log(results)
+}
+
+// 删除群成员
+func TestIm_Group_DeleteGroupMembers(t *testing.T) {
+    err := NewIM().Group().DeleteGroupMembers("test_group1", []string{
+        test1,
+        test2,
+        test3,
+    }, "测试删除", true)
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    
+    t.Log("Success")
 }

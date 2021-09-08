@@ -9,6 +9,7 @@ package group
 
 import (
     "github.com/dobyte/tencent-im/internal/core"
+    "github.com/dobyte/tencent-im/internal/types"
 )
 
 const (
@@ -16,10 +17,10 @@ const (
     commandGetGroupList                = "get_appid_group_list"
     commandCreateGroup                 = "create_group"
     commandDestroyGroup                = "destroy_group"
-    commandGetGroupInfo                = "get_group_info"
+    commandGetGroups                   = "get_group_info"
     commandGetGroupMemberInfo          = "get_group_member_info"
     commandModifyGroupBaseInfo         = "modify_group_base_info"
-    commandAddGroupMember              = "add_group_member"
+    commandAddGroupMembers             = "add_group_member"
     commandDeleteGroupMember           = "delete_group_member"
     commandModifyGroupMemberInfo       = "modify_group_member_info"
     commandGetJoinedGroupList          = "get_joined_group_list"
@@ -45,6 +46,36 @@ type API interface {
     // 点击查看详细文档:
     // https://cloud.tencent.com/document/product/269/1615
     CreateGroup(group *Group) (groupId string, err error)
+    
+    // DestroyGroup 解散群组
+    // App管理员通过该接口解散群。
+    // 点击查看详细文档:
+    // https://cloud.tencent.com/document/product/269/1624
+    DestroyGroup(groupId string) (err error)
+    
+    // GetGroup 获取单个群详细资料
+    // 本方法由“获取多个群详细资料（GetGroups）”拓展而来
+    // 点击查看详细文档:
+    // https://cloud.tencent.com/document/product/269/1616
+    GetGroup(groupId string, filter ...*Filter) (group *Group, err error)
+    
+    // GetGroups 获取群详细资料
+    // App 管理员可以根据群组 ID 获取群组的详细信息。
+    // 点击查看详细文档:
+    // https://cloud.tencent.com/document/product/269/1616
+    GetGroups(groupIds []string, filter ...*Filter) (groups []*Group, err error)
+    
+    // AddGroupMembers 增加群成员
+    // App管理员可以通过该接口向指定的群中添加新成员。
+    // 点击查看详细文档:
+    // https://cloud.tencent.com/document/product/269/1621
+    AddGroupMembers(groupId string, userIds []string, silence ...bool) (results []AddMembersResult, err error)
+    
+    // DeleteGroupMembers 删除群成员
+    // App管理员可以通过该接口删除群成员。
+    // 点击查看详细文档:
+    // https://cloud.tencent.com/document/product/269/1622
+    DeleteGroupMembers(groupId string, userIds []string, reasonAndSilence ...interface{}) (err error)
 }
 
 type api struct {
@@ -78,15 +109,15 @@ func (a *api) CreateGroup(group *Group) (groupId string, err error) {
     }
     
     req := createGroupReq{}
-    req.GroupId = group.GetId()
-    req.OwnerUserId = group.GetOwner()
-    req.Type = group.GetType()
-    req.Name = group.GetName()
-    req.FaceUrl = group.GetAvatar()
-    req.Introduction = group.GetIntroduction()
-    req.Notification = group.GetNotification()
-    req.MaxMemberCount = group.GetMaxMemberCount()
-    req.ApplyJoinOption = group.GetApplyJoinOption()
+    req.GroupId = group.id
+    req.OwnerUserId = group.owner
+    req.Type = group.types
+    req.Name = group.name
+    req.FaceUrl = group.avatar
+    req.Introduction = group.introduction
+    req.Notification = group.notification
+    req.MaxMemberCount = group.maxMemberCount
+    req.ApplyJoinOption = group.applyJoinOption
     
     if data := group.GetAllCustomData(); data != nil {
         req.AppDefinedData = make([]customData, 0, len(data))
@@ -98,19 +129,19 @@ func (a *api) CreateGroup(group *Group) (groupId string, err error) {
         }
     }
     
-    if members := group.GetMembers(); len(members) > 0 {
-        req.MemberList = make([]memberInfo, 0, len(members))
-        for _, member := range members {
-            if err = member.CheckError(); err != nil {
+    if len(group.members) > 0 {
+        req.MemberList = make([]memberInfo, 0, len(group.members))
+        for _, member := range group.members {
+            if err = member.checkError(); err != nil {
                 return
+            } else {
+                req.MemberList = append(req.MemberList, memberInfo{
+                    UserId:   member.userId,
+                    Role:     member.role,
+                    JoinTime: member.joinTime,
+                    NameCard: member.nameCard,
+                })
             }
-            
-            info := memberInfo{}
-            info.UserId = member.GetUserId()
-            info.Role = member.GetRole()
-            info.JoinTime = member.GetJoinTime().Unix()
-            info.NameCard = member.GetNameCard()
-            req.MemberList = append(req.MemberList, info)
         }
     }
     
@@ -125,30 +156,117 @@ func (a *api) CreateGroup(group *Group) (groupId string, err error) {
     return
 }
 
-// DestroyGroup Destroy the specified group.
-// click here to view the document:
+// DestroyGroup 解散群组
+// App管理员通过该接口解散群。
+// 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1624
-func (a *api) DestroyGroup(req *DestroyGroupReq) (*DestroyGroupResp, error) {
-    resp := &DestroyGroupResp{}
+func (a *api) DestroyGroup(groupId string) (err error) {
+    req := destroyGroupReq{GroupId: groupId}
     
-    if err := a.client.Post(serviceGroup, commandDestroyGroup, req, resp); err != nil {
-        return nil, err
+    if err = a.client.Post(serviceGroup, commandDestroyGroup, req, &types.ActionBaseResp{}); err != nil {
+        return
     }
     
-    return resp, nil
+    return
 }
 
-// GetGroupInfo Get group details based on group ID.
-// click here to view the document:
+// GetGroup 获取单个群详细资料
+// 本方法由“获取多个群详细资料（GetGroups）”拓展而来
+// 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1616
-func (a *api) GetGroupInfo(req *GetGroupInfoReq) (*GetGroupInfoResp, error) {
-    resp := &GetGroupInfoResp{}
+func (a *api) GetGroup(groupId string, filter ...*Filter) (group *Group, err error) {
+    var groups []*Group
     
-    if err := a.client.Post(serviceGroup, commandGetGroupInfo, req, resp); err != nil {
-        return nil, err
+    if groups, err = a.GetGroups([]string{groupId}, filter...); err != nil {
+        return
     }
     
-    return resp, nil
+    if groups != nil && len(groups) > 0 {
+        if err = groups[0].err; err != nil {
+            return
+        }
+        
+        group = groups[0]
+    }
+    
+    return
+}
+
+// GetGroups 获取多个群详细资料
+// App 管理员可以根据群组 ID 获取群组的详细信息。
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/1616
+func (a *api) GetGroups(groupIds []string, filter ...*Filter) (groups []*Group, err error) {
+    if len(groupIds) > 0 {
+        req := getGroupsReq{GroupIds: groupIds}
+        resp := &getGroupsResp{}
+        
+        if len(filter) > 0 {
+            req.ResponseFilter = &responseFilter{
+                GroupBaseInfoFilter:    filter[0].GetAllBaseInfoFilterFields(),
+                MemberInfoFilter:       filter[0].GetAllMemberInfoFilterFields(),
+                GroupCustomDataFilter:  filter[0].GetAllGroupCustomDataFilterFields(),
+                MemberCustomDataFilter: filter[0].GetAllMemberCustomDataFilterFields(),
+            }
+        }
+        
+        if err = a.client.Post(serviceGroup, commandGetGroups, req, resp); err != nil {
+            return
+        }
+        
+        groups = make([]*Group, 0, len(resp.GroupInfos))
+        for _, item := range resp.GroupInfos {
+            group := NewGroup()
+            group.setError(item.ErrorCode, item.ErrorInfo)
+            if group.err == nil {
+                group.id = item.GroupId
+                group.name = item.Name
+                group.types = item.Type
+                group.owner = item.OwnerUserId
+                group.avatar = item.FaceUrl
+                group.memberNum = item.MemberNum
+                group.maxMemberCount = item.MaxMemberNum
+                group.applyJoinOption = item.ApplyJoinOption
+                group.createTime = item.CreateTime
+                group.lastInfoTime = item.LastInfoTime
+                group.lastMsgTime = item.LastMsgTime
+                group.shutUpStatus = item.ShutUpAllMember
+                group.nextMsgSeq = item.NextMsgSeq
+                
+                if item.AppDefinedData != nil && len(item.AppDefinedData) > 0 {
+                    for _, v := range item.AppDefinedData {
+                        group.SetCustomData(v.Key, v.Value)
+                    }
+                }
+                
+                if item.MemberList != nil && len(item.MemberList) > 0 {
+                    for _, m := range item.MemberList {
+                        member := &Member{
+                            userId:          m.UserId,
+                            role:            m.Role,
+                            joinTime:        m.JoinTime,
+                            nameCard:        m.NameCard,
+                            msgSeq:          m.MsgSeq,
+                            msgFlag:         m.MsgFlag,
+                            lastSendMsgTime: m.LastSendMsgTime,
+                        }
+                        
+                        if m.AppMemberDefinedData != nil && len(m.AppMemberDefinedData) > 0 {
+                            for _, v := range m.AppMemberDefinedData {
+                                member.SetCustomData(v.Key, v.Value)
+                            }
+                        }
+                        
+                        group.AddMembers(member)
+                    }
+                }
+                
+                groups = append(groups, group)
+            }
+        }
+    }
+    
+    return
 }
 
 // GetGroupMemberInfo Get group member's data based on group ID.
@@ -177,30 +295,65 @@ func (a *api) ModifyGroupBaseInfo(req *ModifyGroupBaseInfoReq) (*ModifyGroupBase
     return resp, nil
 }
 
-// AddGroupMember Add new members to the specified group.
-// click here to view the document:
+// AddGroupMembers 增加群成员
+// App管理员可以通过该接口向指定的群中添加新成员。
+// 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1621
-func (a *api) AddGroupMember(req *AddGroupMemberReq) (*AddGroupMemberResp, error) {
-    resp := &AddGroupMemberResp{}
-    
-    if err := a.client.Post(serviceGroup, commandAddGroupMember, req, resp); err != nil {
-        return nil, err
+func (a *api) AddGroupMembers(groupId string, userIds []string, silence ...bool) (results []AddMembersResult, err error) {
+    req := addGroupMembersReq{}
+    req.GroupId = groupId
+    req.MemberList = make([]addMemberItem, 0, len(userIds))
+    for _, userId := range userIds {
+        req.MemberList = append(req.MemberList, addMemberItem{
+            UserId: userId,
+        })
+    }
+    if len(silence) > 0 && silence[0] {
+        req.Silence = 1
     }
     
-    return resp, nil
+    resp := &addGroupMembersResp{}
+    
+    if err = a.client.Post(serviceGroup, commandAddGroupMembers, req, resp); err != nil {
+        return
+    }
+    
+    results = resp.MemberList
+    
+    return
 }
 
-// DeleteGroupMember Delete members from the specified group.
-// click here to view the document:
+// DeleteGroupMembers 删除群成员
+// App管理员可以通过该接口删除群成员。
+// 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1622
-func (a *api) DeleteGroupMember(req *DeleteGroupMemberReq) (*DeleteGroupMemberResp, error) {
-    resp := &DeleteGroupMemberResp{}
+func (a *api) DeleteGroupMembers(groupId string, userIds []string, reasonAndSilence ...interface{}) (err error) {
+    req := deleteGroupMembersReq{}
+    req.GroupId = groupId
+    req.UserIds = userIds
     
-    if err := a.client.Post(serviceGroup, commandDeleteGroupMember, req, resp); err != nil {
-        return nil, err
+    if len(reasonAndSilence) > 0 {
+        for i, val := range reasonAndSilence {
+            if i > 1 {
+                break
+            }
+            
+            switch v := val.(type) {
+            case string:
+                req.Reason = v
+            case bool:
+                if v {
+                    req.Silence = 1
+                }
+            }
+        }
     }
     
-    return resp, nil
+    if err = a.client.Post(serviceGroup, commandDeleteGroupMember, req, &types.ActionBaseResp{}); err != nil {
+        return
+    }
+    
+    return
 }
 
 // ModifyGroupMemberInfo Modify group member information.

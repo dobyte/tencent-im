@@ -64,34 +64,38 @@ type (
         UserId               string       `json:"Member_Account"`            // 群成员ID
         Role                 string       `json:"Role,omitempty"`            // 群内身份
         JoinTime             int64        `json:"JoinTime,omitempty"`        // 入群时间
-        MsgSeq               int64        `json:"MsgSeq,omitempty"`          // 该成员当前已读消息Seq
+        MsgSeq               int          `json:"MsgSeq,omitempty"`          // 该成员当前已读消息Seq
         MsgFlag              string       `json:"MsgFlag,omitempty"`         // 消息接收选项
         LastSendMsgTime      int64        `json:"LastSendMsgTime,omitempty"` // 最后发送消息的时间
         NameCard             string       `json:"NameCard,omitempty"`        // 群名片
         AppMemberDefinedData []customData `json:"AppMemberDefinedData"`      // 群成员自定义数据
     }
     
-    DestroyGroupReq struct {
-        GroupId string `json:"GroupId"`
+    // 解散群（请求）
+    destroyGroupReq struct {
+        GroupId string `json:"GroupId"` // （必填）操作的群 ID
     }
     
-    DestroyGroupResp struct {
+    responseFilter struct {
+        GroupBaseInfoFilter    []string `json:"GroupBaseInfoFilter,omitempty"`
+        MemberInfoFilter       []string `json:"MemberInfoFilter,omitempty"`
+        GroupCustomDataFilter  []string `json:"AppDefinedDataFilter_Group,omitempty"`
+        MemberCustomDataFilter []string `json:"AppDefinedDataFilter_GroupMember,omitempty"`
+    }
+    
+    // 获取群详细资料（请求）
+    getGroupsReq struct {
+        GroupIds       []string        `json:"GroupIdList"`
+        ResponseFilter *responseFilter `json:"ResponseFilter,omitempty"`
+    }
+    
+    // 获取群详细资料（响应）
+    getGroupsResp struct {
         types.ActionBaseResp
+        GroupInfos []groupInfo `json:"GroupInfo"`
     }
     
-    GetGroupInfoResponseFilter struct {
-        GroupBaseInfoFilter            []string `json:"GroupBaseInfoFilter"`
-        MemberInfoFilter               []string `json:"MemberInfoFilter"`
-        ApptypesdDataFilterGroup       []string `json:"ApptypesdDataFilter_Group"`
-        ApptypesdDataFilterGroupMember []string `json:"ApptypesdDataFilter_GroupMember"`
-    }
-    
-    GetGroupInfoReq struct {
-        GroupIdList    []string                   `json:"GroupIdList"`
-        ResponseFilter GetGroupInfoResponseFilter `json:"ResponseFilter"`
-    }
-    
-    GroupInfoItem struct {
+    groupInfo struct {
         GroupId         string       `json:"GroupId"`
         ErrorCode       int          `json:"ErrorCode"`
         ErrorInfo       string       `json:"ErrorInfo"`
@@ -101,22 +105,17 @@ type (
         Introduction    string       `json:"Introduction"`
         Notification    string       `json:"Notification"`
         FaceUrl         string       `json:"FaceUrl"`
-        OwnerAccount    string       `json:"Owner_Account"`
-        CreateTime      int          `json:"CreateTime"`
-        LastInfoTime    int          `json:"LastInfoTime"`
-        LastMsgTime     int          `json:"LastMsgTime"`
+        OwnerUserId     string       `json:"Owner_Account"`
+        CreateTime      int64        `json:"CreateTime"`
+        LastInfoTime    int64        `json:"LastInfoTime"`
+        LastMsgTime     int64        `json:"LastMsgTime"`
         NextMsgSeq      int          `json:"NextMsgSeq"`
-        MemberNum       int          `json:"MemberNum"`
-        MaxMemberNum    int          `json:"MaxMemberNum"`
+        MemberNum       uint         `json:"MemberNum"`
+        MaxMemberNum    uint         `json:"MaxMemberNum"`
         ApplyJoinOption string       `json:"ApplyJoinOption"`
         ShutUpAllMember string       `json:"ShutUpAllMember"`
-        ApptypesdData   []customData `json:"ApptypesdData"`
+        AppDefinedData  []customData `json:"AppDefinedData"`
         MemberList      []memberInfo `json:"MemberList"`
-    }
-    
-    GetGroupInfoResp struct {
-        types.ActionBaseResp
-        GroupInfo []GroupInfoItem `json:"GroupInfo"`
     }
     
     GetGroupMemberInfoReq struct {
@@ -161,35 +160,35 @@ type (
         types.ActionBaseResp
     }
     
-    AddMemberItem struct {
-        MemberAccount string `json:"Member_Account"`
-    }
-    
-    AddGroupMemberReq struct {
+    // 添加群成员（请求）
+    addGroupMembersReq struct {
         GroupId    string          `json:"GroupId"`
-        Silence    int             `json:"Silence"`
-        MemberList []AddMemberItem `json:"MemberList"`
+        Silence    int             `json:"Silence,omitempty"`
+        MemberList []addMemberItem `json:"MemberList"`
     }
     
-    AddMemberRetItem struct {
-        MemberAccount string `json:"Member_Account"`
-        Result        int    `json:"Result"`
-    }
-    
-    AddGroupMemberResp struct {
+    // 添加群成员（响应）
+    addGroupMembersResp struct {
         types.ActionBaseResp
-        MemberList []AddMemberRetItem `json:"MemberList"`
+        MemberList []AddMembersResult `json:"MemberList"`
     }
     
-    DeleteGroupMemberReq struct {
-        GroupId            string   `json:"GroupId"`
-        Silence            int      `json:"Silence"`
-        Reason             string   `json:"Reason"`
-        MemberToDelAccount []string `json:"MemberToDel_Account"`
+    addMemberItem struct {
+        UserId string `json:"Member_Account"`
     }
     
-    DeleteGroupMemberResp struct {
-        types.ActionBaseResp
+    // AddMembersResult 添加群成员结果
+    AddMembersResult struct {
+        UserId string `json:"Member_Account"`
+        Result int    `json:"Result"`
+    }
+    
+    // 删除群成员（请求）
+    deleteGroupMembersReq struct {
+        GroupId string   `json:"GroupId"`             // （必填）操作的群ID
+        Silence int      `json:"Silence"`             // （选填）是否静默删人
+        Reason  string   `json:"Reason"`              // （选填）踢出用户原因
+        UserIds []string `json:"MemberToDel_Account"` // （必填）待删除的群成员
     }
     
     ModifyGroupMemberInfoReq struct {
