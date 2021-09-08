@@ -10,29 +10,41 @@ package group
 import "github.com/dobyte/tencent-im/internal/types"
 
 type (
-    // 群类型
-    GroupType string
-    
-    // 申请加群处理方式
-    ApplyJoinOption string
-    
-    GetGroupListReq struct {
-        Limit     int    `json:"Limit"`
+    // 拉取App中的所有群组（请求）
+    fetchGroupIdsReq struct {
+        Limit     int    `json:"Limit,omitempty"`
         Next      int    `json:"Next"`
-        GroupType string `json:"GroupType"`
+        GroupType string `json:"GroupType,omitempty"`
     }
     
-    GroupIdItem struct {
+    // 拉取App中的所有群组（响应）
+    fetchGroupIdsResp struct {
+        types.ActionBaseResp
+        Next        int       `json:"Next"`
+        TotalCount  int       `json:"TotalCount"`
+        GroupIdList []groupId `json:"GroupIdList"`
+    }
+    
+    // FetchGroupIdsRet 拉取App中的所有群组ID返回
+    FetchGroupIdsRet struct {
+        Total   int
+        Next    int
+        HasMore bool
+        List    []string
+    }
+    
+    FetchGroupsRet struct {
+        Total   int
+        Next    int
+        HasMore bool
+        List    []*Group
+    }
+    
+    groupId struct {
         GroupId string `json:"GroupId"`
     }
     
-    GetGroupListResp struct {
-        types.ActionBaseResp
-        Next        int           `json:"Next"`
-        TotalCount  int           `json:"TotalCount"`
-        GroupIdList []GroupIdItem `json:"GroupIdList"`
-    }
-    
+    // 自定义数据
     customData struct {
         Key   string      `json:"Key"`
         Value interface{} `json:"Value"`
@@ -47,7 +59,7 @@ type (
         Introduction    string       `json:"Introduction,omitempty"`    // （选填）群简介，最长240字节，使用 UTF-8 编码，1个汉字占3个字节
         Notification    string       `json:"Notification,omitempty"`    // （选填）群公告，最长300字节，使用 UTF-8 编码，1个汉字占3个字节
         FaceUrl         string       `json:"FaceUrl,omitempty"`         // （选填）群头像 URL，最长100字节
-        MaxMemberCount  uint         `json:"MaxMemberCount,omitempty"`  // （选填）最大群成员数量，缺省时的默认值：付费套餐包上限，例如体验版是20，如果升级套餐包，需按照修改群基础资料修改这个字段
+        MaxMemberNum    uint         `json:"MaxMemberCount,omitempty"`  // （选填）最大群成员数量，缺省时的默认值：付费套餐包上限，例如体验版是20，如果升级套餐包，需按照修改群基础资料修改这个字段
         ApplyJoinOption string       `json:"ApplyJoinOption,omitempty"` // （选填）申请加群处理方式。包含 FreeAccess（自由加入），NeedPermission（需要验证），DisableApply（禁止加群），不填默认为 NeedPermission（需要验证） 仅当创建支持申请加群的 群组 时，该字段有效
         AppDefinedData  []customData `json:"AppDefinedData,omitempty"`  // （选填）群组维度的自定义字段，默认情况是没有的，可以通过 即时通信 IM 控制台 进行配置，详情请参阅 自定义字段
         MemberList      []memberInfo `json:"MemberList,omitempty"`      // （选填）初始群成员列表，最多100个；成员信息字段详情请参阅 群成员资料
@@ -68,6 +80,7 @@ type (
         MsgFlag              string       `json:"MsgFlag,omitempty"`         // 消息接收选项
         LastSendMsgTime      int64        `json:"LastSendMsgTime,omitempty"` // 最后发送消息的时间
         NameCard             string       `json:"NameCard,omitempty"`        // 群名片
+        ShutUpUntil          int64        `json:"ShutUpUntil"`               // 禁言截至时间
         AppMemberDefinedData []customData `json:"AppMemberDefinedData"`      // 群成员自定义数据
     }
     
@@ -118,46 +131,41 @@ type (
         MemberList      []memberInfo `json:"MemberList"`
     }
     
-    GetGroupMemberInfoReq struct {
-        GroupId                        string   `json:"GroupId"`
-        Limit                          int      `json:"Limit"`
-        Offset                         int      `json:"Offset"`
-        MemberInfoFilter               []string `json:"MemberInfoFilter"`
-        MemberRoleFilter               []string `json:"MemberRoleFilter"`
-        ApptypesdDataFilterGroupMember []string `json:"ApptypesdDataFilter_GroupMember"`
+    // 获取群成员详细资料（请求）
+    fetchGroupMembersReq struct {
+        GroupId                string   `json:"GroupId"`
+        Limit                  int      `json:"Limit"`
+        Offset                 int      `json:"Offset"`
+        MemberInfoFilter       []string `json:"MemberInfoFilter"`
+        MemberRoleFilter       []string `json:"MemberRoleFilter"`
+        MemberCustomDataFilter []string `json:"AppDefinedDataFilter_GroupMember"`
     }
     
-    MemberInfoItem struct {
-        MemberAccount       string       `json:"Member_Account"`
-        Role                string       `json:"Role"`
-        JoinTime            int          `json:"JoinTime"`
-        MsgSeq              int          `json:"MsgSeq"`
-        MsgFlag             string       `json:"MsgFlag"`
-        LastSendMsgTime     int          `json:"LastSendMsgTime"`
-        ShutUpUntil         int          `json:"ShutUpUntil"`
-        AppMembertypesdData []customData `json:"AppMembertypesdData"`
-    }
-    
-    GetGroupMemberInfoResp struct {
+    // 获取群成员详细资料（响应）
+    fetchGroupMembersResp struct {
         types.ActionBaseResp
-        MemberNum  int              `json:"MemberNum"`
-        MemberList []MemberInfoItem `json:"MemberList"`
+        MemberNum  int          `json:"MemberNum"`
+        MemberList []memberInfo `json:"MemberList"`
     }
     
-    ModifyGroupBaseInfoReq struct {
+    // FetchGroupMembersRet 拉取群成员结果
+    FetchGroupMembersRet struct {
+        Total   int       // 成员数量
+        HasMore bool      // 是否还有更多数据
+        List    []*Member // 成员列表
+    }
+    
+    // 修改群基础资料（请求）
+    updateGroupReq struct {
         GroupId         string       `json:"GroupId"`
-        Name            string       `json:"Name"`
-        Introduction    string       `json:"Introduction"`
-        Notification    string       `json:"Notification"`
-        FaceUrl         string       `json:"FaceUrl"`
-        MaxMemberNum    int          `json:"MaxMemberNum"`
-        ApplyJoinOption string       `json:"ApplyJoinOption"`
-        ShutUpAllMember string       `json:"ShutUpAllMember"`
-        ApptypesdData   []customData `json:"ApptypesdData"`
-    }
-    
-    ModifyGroupBaseInfoResp struct {
-        types.ActionBaseResp
+        Name            string       `json:"Name,omitempty"`
+        Introduction    string       `json:"Introduction,omitempty"`
+        Notification    string       `json:"Notification,omitempty"`
+        FaceUrl         string       `json:"FaceUrl,omitempty"`
+        MaxMemberNum    uint         `json:"MaxMemberNum,omitempty"`
+        ApplyJoinOption string       `json:"ApplyJoinOption,omitempty"`
+        ShutUpAllMember string       `json:"ShutUpAllMember,omitempty"`
+        AppDefinedData  []customData `json:"AppDefinedData,omitempty"`
     }
     
     // 添加群成员（请求）
@@ -251,19 +259,19 @@ type (
         GroupIdList []GroupIdList `json:"GroupIdList"`
     }
     
-    GetRoleInGroupReq struct {
-        GroupId     string   `json:"GroupId"`
-        UserAccount []string `json:"User_Account"`
+    getRolesInGroupReq struct {
+        GroupId string   `json:"GroupId"`
+        UserIds []string `json:"User_Account"`
     }
     
-    UserIdList struct {
-        MemberAccount string `json:"Member_Account"`
-        Role          string `json:"Role"`
-    }
-    
-    GetRoleInGroupResp struct {
+    getRolesInGroupResp struct {
         types.ActionBaseResp
-        UserIdList []UserIdList `json:"UserIdList"`
+        MemberRoleList []memberRole `json:"UserIdList"`
+    }
+    
+    memberRole struct {
+        UserId string `json:"Member_Account"`
+        Role   string `json:"Role"`
     }
     
     ForbidSendMsgReq struct {
@@ -324,13 +332,10 @@ type (
         types.ActionBaseResp
     }
     
-    ChangeGroupOwnerReq struct {
-        GroupId         string `json:"GroupId"`
-        NewOwnerAccount string `json:"NewOwner_Account"`
-    }
-    
-    ChangeGroupOwnerResp struct {
-        types.ActionBaseResp
+    // 转让群主（请求）
+    changeGroupOwnerReq struct {
+        GroupId     string `json:"GroupId"`
+        OwnerUserId string `json:"NewOwner_Account"`
     }
     
     MsgSeqItem struct {

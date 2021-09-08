@@ -1001,7 +1001,7 @@ func TestIm_Group_CreateGroup(t *testing.T) {
     g := group.NewGroup()
     g.SetName("测试群1")
     g.SetType(group.GroupTypePublic)
-    g.SetMaxMemberCount(30)
+    g.SetMaxMemberNum(30)
     g.SetAvatar("http://www.baidu.com")
     g.SetId("test_group1")
     g.SetIntroduction("这是一个测试群")
@@ -1101,4 +1101,99 @@ func TestIm_Group_DeleteGroupMembers(t *testing.T) {
     }
     
     t.Log("Success")
+}
+
+// 转让群组
+func TestIm_Group_ChangeGroupOwner(t *testing.T) {
+    err := NewIM().Group().ChangeGroupOwner("test_group1", test1)
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    
+    t.Log("Success")
+}
+
+// 修改群基础资料
+func TestIm_Group_UpdateGroup(t *testing.T) {
+    g := group.NewGroup()
+    g.SetName("测试群1")
+    g.SetType(group.GroupTypePublic)
+    g.SetMaxMemberNum(30)
+    g.SetAvatar("http://www.baidu.com")
+    g.SetId("test_group1")
+    g.SetIntroduction("这是一个测试群")
+    g.SetNotification("这是一个测试群公告")
+    
+    err := NewIM().Group().UpdateGroup(g)
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    
+    t.Log("Success")
+}
+
+// 查询用户在群组中的身份
+func TestIm_Group_GetRolesInGroup(t *testing.T) {
+    ret, err := NewIM().Group().GetRolesInGroup("test_group1", []string{
+        test1,
+        test2,
+        test3,
+    })
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    
+    t.Log(ret)
+}
+
+// 拉取群成员详细资料
+func TestIm_Group_FetchGroupMembers(t *testing.T) {
+    ret, err := NewIM().Group().FetchGroupMembers("test_group1", 3, 2)
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    
+    t.Log(ret.HasMore)
+    t.Log(ret.Total)
+    
+    for _, member := range ret.List {
+        t.Log(member.GetUserId())
+    }
+}
+
+// 拉取App中的所有群组
+func TestIm_Group_FetchGroupIds(t *testing.T) {
+    ret, err := NewIM().Group().FetchGroupIds(3, 7964653962)
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    
+    t.Log(ret.Total)
+    t.Log(ret.Next)
+    t.Log(ret.HasMore)
+    t.Log(ret.List)
+}
+
+// 拉取App中的所有群组
+func TestIm_Group_FetchGroups(t *testing.T) {
+    ret, err := NewIM().Group().FetchGroups(3, 7964653962)
+    if err != nil {
+        t.Error(err)
+        return
+    }
+    
+    t.Log(ret.Total)
+    t.Log(ret.Next)
+    t.Log(ret.HasMore)
+    
+    for _, g := range ret.List {
+        t.Log(g.GetId())
+        t.Log(g.GetOwner())
+        t.Log(g.GetName())
+    }
 }

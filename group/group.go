@@ -24,6 +24,28 @@ var (
     errGroupNotificationTooLong = errors.New("group notification is too long")
 )
 
+type (
+    GroupType string // 群类型
+    
+    GroupApplyJoinOption string // 申请加群处理方式
+    
+    GroupShutUpStatus string // 全员禁言状态
+)
+
+const (
+    GroupTypePublic     GroupType = "Public"     // Public（陌生人社交群）
+    GroupTypePrivate    GroupType = "Private"    // Private（即 Work，好友工作群）
+    GroupTypeChatRoom   GroupType = "ChatRoom"   // ChatRoom（即 Meeting，会议群）
+    GroupTypeAVChatRoom GroupType = "AVChatRoom" // AVChatRoom（直播群）
+    
+    GroupApplyJoinOptionFreeAccess     GroupApplyJoinOption = "FreeAccess"     // 自由加入
+    GroupApplyJoinOptionNeedPermission GroupApplyJoinOption = "NeedPermission" // 需要验证
+    GroupApplyJoinOptionDisableApply   GroupApplyJoinOption = "DisableApply"   // 禁止加群
+    
+    GroupShutUpStatusOn  GroupShutUpStatus = "On"  // 开启
+    GroupShutUpStatusOff GroupShutUpStatus = "Off" // 关闭
+)
+
 type Group struct {
     err             error
     id              string                 // 群ID
@@ -34,7 +56,7 @@ type Group struct {
     notification    string                 // 群公告
     avatar          string                 // 群头像
     memberNum       uint                   // 群成员数
-    maxMemberCount  uint                   // 最大群成员数量
+    maxMemberNum    uint                   // 最大群成员数量
     applyJoinOption string                 // 申请加群处理方式
     members         []*Member              // 群成员
     customData      map[string]interface{} // 群自定义数据
@@ -119,14 +141,14 @@ func (g *Group) GetAvatar() string {
     return g.avatar
 }
 
-// SetMaxMemberCount 设置最大群成员数量
-func (g *Group) SetMaxMemberCount(maxMemberCount uint) {
-    g.maxMemberCount = maxMemberCount
+// SetMaxMemberNum 设置最大群成员数量
+func (g *Group) SetMaxMemberNum(maxMemberNum uint) {
+    g.maxMemberNum = maxMemberNum
 }
 
-// GetMaxMemberCount 获取最大群成员数量
-func (g *Group) GetMaxMemberCount() uint {
-    return g.maxMemberCount
+// GetMaxMemberNum 获取最大群成员数量
+func (g *Group) GetMaxMemberNum() uint {
+    return g.maxMemberNum
 }
 
 // GetMemberNum 获取群成员数
@@ -135,7 +157,7 @@ func (g *Group) GetMemberNum() uint {
 }
 
 // SetApplyJoinOption 设置申请加群处理方式
-func (g *Group) SetApplyJoinOption(applyJoinOption ApplyJoinOption) {
+func (g *Group) SetApplyJoinOption(applyJoinOption GroupApplyJoinOption) {
     g.applyJoinOption = string(applyJoinOption)
 }
 
@@ -210,6 +232,11 @@ func (g *Group) GetLastMsgTime() time.Time {
 // GetNextMsgSeq 获取群内下一条消息的Seq
 func (g *Group) GetNextMsgSeq() int {
     return g.nextMsgSeq
+}
+
+// SetShutUpStatus 设置全员禁言状态
+func (g *Group) SetShutUpStatus(shutUpStatus GroupShutUpStatus) {
+    g.shutUpStatus = string(shutUpStatus)
 }
 
 // GetShutUpStatus 获取群全员禁言状态

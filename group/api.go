@@ -41,6 +41,18 @@ const (
 )
 
 type API interface {
+    // FetchGroupIds 拉取App中的所有群组ID
+    // App 管理员可以通过该接口获取App中所有群组的ID。
+    // 点击查看详细文档:
+    // https://cloud.tencent.com/document/product/269/1614
+    FetchGroupIds(limit int, next int, groupType ...GroupType) (ret *FetchGroupIdsRet, err error)
+    
+    // FetchGroups 拉取App中的所有群组
+    // 本方法由“拉取App中的所有群组ID（FetchGroupIds）”拓展而来
+    // 点击查看详细文档:
+    // https://cloud.tencent.com/document/product/269/1614
+    FetchGroups(limit int, next int, groupTypeAndFilter ...interface{}) (ret *FetchGroupsRet, err error)
+    
     // CreateGroup 创建群组
     // App 管理员可以通过该接口创建群组。
     // 点击查看详细文档:
@@ -52,6 +64,12 @@ type API interface {
     // 点击查看详细文档:
     // https://cloud.tencent.com/document/product/269/1624
     DestroyGroup(groupId string) (err error)
+    
+    // UpdateGroup 修改群基础资料
+    // App管理员可以通过该接口修改指定群组的基础信息。
+    // 点击查看详细文档:
+    // https://cloud.tencent.com/document/product/269/1620
+    UpdateGroup(group *Group) (err error)
     
     // GetGroup 获取单个群详细资料
     // 本方法由“获取多个群详细资料（GetGroups）”拓展而来
@@ -76,6 +94,26 @@ type API interface {
     // 点击查看详细文档:
     // https://cloud.tencent.com/document/product/269/1622
     DeleteGroupMembers(groupId string, userIds []string, reasonAndSilence ...interface{}) (err error)
+    
+    // ChangeGroupOwner 转让群主
+    // App 管理员可以通过该接口将群主身份转移给他人。
+    // 没有群主的群，App 管理员可以通过此接口指定他人作为群主。
+    // 新群主必须为群内成员。
+    // 点击查看详细文档:
+    // https://cloud.tencent.com/document/product/269/1633
+    ChangeGroupOwner(groupId, userId string) (err error)
+    
+    // GetRolesInGroup 查询用户在群组中的身份
+    // App管理员可以通过该接口获取一批用户在群内的身份，即“成员角色”。
+    // 点击查看详细文档:
+    // https://cloud.tencent.com/document/product/269/1626
+    GetRolesInGroup(groupId string, userIds []string) (memberRoles map[string]string, err error)
+    
+    // FetchGroupMembers 拉取群成员详细资料
+    // App管理员可以根据群组ID获取群组成员的资料。
+    // 点击查看详细文档:
+    // https://cloud.tencent.com/document/product/269/1617
+    FetchGroupMembers(groupId string, limit, offset int, filter ...*Filter) (ret *FetchGroupMembersRet, err error)
 }
 
 type api struct {
@@ -86,21 +124,85 @@ func NewAPI(client core.Client) API {
     return &api{client: client}
 }
 
-// GetGroupList Get the IDs of all groups in the app.
-// click here to view the document:
+// FetchGroupIds 拉取App中的所有群组ID
+// App 管理员可以通过该接口获取App中所有群组的ID。
+// 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1614
-func (a *api) GetGroupList(req *GetGroupListReq) (*GetGroupListResp, error) {
-    resp := &GetGroupListResp{}
-    
-    if err := a.client.Post(serviceGroup, commandGetGroupList, req, resp); err != nil {
-        return nil, err
+func (a *api) FetchGroupIds(limit int, next int, groupType ...GroupType) (ret *FetchGroupIdsRet, err error) {
+    req := fetchGroupIdsReq{Limit: limit, Next: next}
+    if len(groupType) > 0 {
+        req.GroupType = string(groupType[0])
     }
     
-    return resp, nil
+    resp := &fetchGroupIdsResp{}
+    
+    if err = a.client.Post(serviceGroup, commandGetGroupList, req, resp); err != nil {
+        return
+    }
+    
+    ret = &FetchGroupIdsRet{}
+    ret.Next = resp.Next
+    ret.Total = resp.TotalCount
+    ret.HasMore = ret.Next != 0
+    
+    if resp.GroupIdList != nil && len(resp.GroupIdList) > 0 {
+        ret.List = make([]string, 0, len(resp.GroupIdList))
+        for _, item := range resp.GroupIdList {
+            ret.List = append(ret.List, item.GroupId)
+        }
+    }
+    
+    return
+}
+
+// FetchGroups 拉取App中的所有群组
+// 本方法由“拉取App中的所有群组ID（FetchGroupIds）”拓展而来
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/1614
+func (a *api) FetchGroups(limit int, next int, groupTypeAndFilter ...interface{}) (ret *FetchGroupsRet, err error) {
+    var (
+        resp      *FetchGroupIdsRet
+        filter    *Filter
+        groupType GroupType
+    )
+    
+    if len(groupTypeAndFilter) > 0 {
+        for i, val := range groupTypeAndFilter {
+            if i > 1 {
+                break
+            }
+            switch v := val.(type) {
+            case GroupType:
+                groupType = v
+            case *Filter:
+                filter = v
+            }
+        }
+    }
+    
+    if resp, err = a.FetchGroupIds(limit, next, groupType); err != nil {
+        return
+    }
+    
+    if len(resp.List) > 0 {
+        var groups []*Group
+        if groups, err = a.GetGroups(resp.List, filter); err != nil {
+            return
+        }
+        
+        ret = &FetchGroupsRet{
+            Total:   resp.Total,
+            Next:    resp.Next,
+            HasMore: resp.HasMore,
+            List:    groups,
+        }
+    }
+    
+    return
 }
 
 // CreateGroup 创建群组
-// App 管理员可以通过该接口创建群组。
+// App管理员可以通过该接口创建群组。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1615
 func (a *api) CreateGroup(group *Group) (groupId string, err error) {
@@ -116,7 +218,7 @@ func (a *api) CreateGroup(group *Group) (groupId string, err error) {
     req.FaceUrl = group.avatar
     req.Introduction = group.introduction
     req.Notification = group.notification
-    req.MaxMemberCount = group.maxMemberCount
+    req.MaxMemberNum = group.maxMemberNum
     req.ApplyJoinOption = group.applyJoinOption
     
     if data := group.GetAllCustomData(); data != nil {
@@ -202,11 +304,13 @@ func (a *api) GetGroups(groupIds []string, filter ...*Filter) (groups []*Group, 
         resp := &getGroupsResp{}
         
         if len(filter) > 0 {
-            req.ResponseFilter = &responseFilter{
-                GroupBaseInfoFilter:    filter[0].GetAllBaseInfoFilterFields(),
-                MemberInfoFilter:       filter[0].GetAllMemberInfoFilterFields(),
-                GroupCustomDataFilter:  filter[0].GetAllGroupCustomDataFilterFields(),
-                MemberCustomDataFilter: filter[0].GetAllMemberCustomDataFilterFields(),
+            if filter[0] != nil {
+                req.ResponseFilter = &responseFilter{
+                    GroupBaseInfoFilter:    filter[0].GetAllBaseInfoFilterFields(),
+                    MemberInfoFilter:       filter[0].GetAllMemberInfoFilterFields(),
+                    GroupCustomDataFilter:  filter[0].GetAllGroupCustomDataFilterFields(),
+                    MemberCustomDataFilter: filter[0].GetAllMemberCustomDataFilterFields(),
+                }
             }
         }
         
@@ -225,7 +329,7 @@ func (a *api) GetGroups(groupIds []string, filter ...*Filter) (groups []*Group, 
                 group.owner = item.OwnerUserId
                 group.avatar = item.FaceUrl
                 group.memberNum = item.MemberNum
-                group.maxMemberCount = item.MaxMemberNum
+                group.maxMemberNum = item.MaxMemberNum
                 group.applyJoinOption = item.ApplyJoinOption
                 group.createTime = item.CreateTime
                 group.lastInfoTime = item.LastInfoTime
@@ -269,30 +373,92 @@ func (a *api) GetGroups(groupIds []string, filter ...*Filter) (groups []*Group, 
     return
 }
 
-// GetGroupMemberInfo Get group member's data based on group ID.
-// click here to view the document:
+// FetchGroupMembers 拉取群成员详细资料
+// App管理员可以根据群组ID获取群组成员的资料。
+// 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1617
-func (a *api) GetGroupMemberInfo(req *GetGroupMemberInfoReq) (*GetGroupMemberInfoResp, error) {
-    resp := &GetGroupMemberInfoResp{}
+func (a *api) FetchGroupMembers(groupId string, limit, offset int, filter ...*Filter) (ret *FetchGroupMembersRet, err error) {
+    req := fetchGroupMembersReq{}
+    req.GroupId = groupId
+    req.Limit = limit
+    req.Offset = offset
     
-    if err := a.client.Post(serviceGroup, commandGetGroupMemberInfo, req, resp); err != nil {
-        return nil, err
+    if len(filter) > 0 {
+        if filter[0] != nil {
+            req.MemberInfoFilter = filter[0].GetAllMemberInfoFilterFields()
+            req.MemberRoleFilter = filter[0].GetAllMemberRoleFilterValues()
+            req.MemberCustomDataFilter = filter[0].GetAllMemberCustomDataFilterFields()
+        }
     }
     
-    return resp, nil
+    resp := &fetchGroupMembersResp{}
+    
+    if err = a.client.Post(serviceGroup, commandGetGroupMemberInfo, req, resp); err != nil {
+        return
+    }
+    
+    ret = &FetchGroupMembersRet{}
+    ret.Total = resp.MemberNum
+    ret.List = make([]*Member, 0, len(resp.MemberList))
+    ret.HasMore = resp.MemberNum > limit*(offset+1)
+    
+    for _, m := range resp.MemberList {
+        member := &Member{
+            userId:          m.UserId,
+            role:            m.Role,
+            joinTime:        m.JoinTime,
+            nameCard:        m.NameCard,
+            msgSeq:          m.MsgSeq,
+            msgFlag:         m.MsgFlag,
+            lastSendMsgTime: m.LastSendMsgTime,
+        }
+        
+        if m.AppMemberDefinedData != nil && len(m.AppMemberDefinedData) > 0 {
+            for _, v := range m.AppMemberDefinedData {
+                member.SetCustomData(v.Key, v.Value)
+            }
+        }
+        
+        ret.List = append(ret.List, member)
+    }
+    
+    return
 }
 
-// ModifyGroupBaseInfo Modify the basic information of the specified group.
-// click here to view the document:
+// UpdateGroup 修改群基础资料
+// App管理员可以通过该接口修改指定群组的基础信息。
+// 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1620
-func (a *api) ModifyGroupBaseInfo(req *ModifyGroupBaseInfoReq) (*ModifyGroupBaseInfoResp, error) {
-    resp := &ModifyGroupBaseInfoResp{}
-    
-    if err := a.client.Post(serviceGroup, commandModifyGroupBaseInfo, req, resp); err != nil {
-        return nil, err
+func (a *api) UpdateGroup(group *Group) (err error) {
+    if err = group.checkError(); err != nil {
+        return
     }
     
-    return resp, nil
+    req := updateGroupReq{}
+    req.GroupId = group.id
+    req.Name = group.name
+    req.FaceUrl = group.avatar
+    req.Introduction = group.introduction
+    req.Notification = group.notification
+    req.MaxMemberNum = group.maxMemberNum
+    req.ApplyJoinOption = group.applyJoinOption
+    req.ShutUpAllMember = group.shutUpStatus
+    
+    if data := group.GetAllCustomData(); data != nil {
+        req.AppDefinedData = make([]customData, 0, len(data))
+        for key, val := range data {
+            req.AppDefinedData = append(req.AppDefinedData, customData{
+                Key:   key,
+                Value: val,
+            })
+        }
+    }
+    
+    if err = a.client.Post(serviceGroup, commandModifyGroupBaseInfo, req, &types.ActionBaseResp{}); err != nil {
+        return
+    }
+    
+    return
 }
 
 // AddGroupMembers 增加群成员
@@ -382,17 +548,24 @@ func (a *api) GetJoinedGroupList(req *GetJoinedGroupListReq) (*GetJoinedGroupLis
     return resp, nil
 }
 
-// GetRoleInGroup Get the identities of a batch of users in the group, that is, "member roles".
-// click here to view the document:
+// GetRolesInGroup 查询用户在群组中的身份
+// App管理员可以通过该接口获取一批用户在群内的身份，即“成员角色”。
+// 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1626
-func (a *api) GetRoleInGroup(req *GetRoleInGroupReq) (*GetRoleInGroupResp, error) {
-    resp := &GetRoleInGroupResp{}
+func (a *api) GetRolesInGroup(groupId string, userIds []string) (memberRoles map[string]string, err error) {
+    req := getRolesInGroupReq{GroupId: groupId, UserIds: userIds}
+    resp := &getRolesInGroupResp{}
     
-    if err := a.client.Post(serviceGroup, commandGetRoleInGroup, req, resp); err != nil {
-        return nil, err
+    if err = a.client.Post(serviceGroup, commandGetRoleInGroup, req, resp); err != nil {
+        return
     }
     
-    return resp, nil
+    memberRoles = make(map[string]string)
+    for _, item := range resp.MemberRoleList {
+        memberRoles[item.UserId] = item.Role
+    }
+    
+    return
 }
 
 // ForbidSendMsg Mute and unmute a group of users.
@@ -447,17 +620,20 @@ func (a *api) SendGroupSystemNotification(req *SendGroupSystemNotificationReq) (
     return resp, nil
 }
 
-// ChangeGroupOwner Transfer the identity of the group owner to others.
-// click here to view the document:
+// ChangeGroupOwner 转让群主
+// App 管理员可以通过该接口将群主身份转移给他人。
+// 没有群主的群，App 管理员可以通过此接口指定他人作为群主。
+// 新群主必须为群内成员。
+// 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1633
-func (a *api) ChangeGroupOwner(req *ChangeGroupOwnerReq) (*ChangeGroupOwnerResp, error) {
-    resp := &ChangeGroupOwnerResp{}
+func (a *api) ChangeGroupOwner(groupId, userId string) (err error) {
+    req := changeGroupOwnerReq{GroupId: groupId, OwnerUserId: userId}
     
-    if err := a.client.Post(serviceGroup, commandChangeGroupOwner, req, resp); err != nil {
-        return nil, err
+    if err = a.client.Post(serviceGroup, commandChangeGroupOwner, req, &types.ActionBaseResp{}); err != nil {
+        return
     }
     
-    return resp, nil
+    return
 }
 
 // RecallGroupMsg Withdraw the message of the specified group, the message must be within the roaming validity period.

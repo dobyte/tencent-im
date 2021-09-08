@@ -44,6 +44,7 @@ const (
 type Filter struct {
     baseInfo         map[string]bool
     memberInfo       map[string]bool
+    memberRole       map[string]bool
     groupCustomData  map[string]bool
     memberCustomData map[string]bool
 }
@@ -106,6 +107,38 @@ func (f *Filter) GetAllMemberInfoFilterFields() (filters []string) {
     
     filters = make([]string, 0, len(f.memberInfo))
     for k, _ := range f.memberInfo {
+        filters = append(filters, k)
+    }
+    
+    return
+}
+
+// AddMemberRoleFilter 添加群成员角色过滤器
+func (f *Filter) AddMemberRoleFilter(field string) {
+    if f.memberRole == nil {
+        f.memberRole = make(map[string]bool)
+    }
+    
+    f.memberRole[field] = true
+}
+
+// RemMemberRoleFilter 移除群成员角色过滤器
+func (f *Filter) RemMemberRoleFilter(field string) {
+    if f.memberRole == nil {
+        return
+    }
+    
+    delete(f.memberRole, field)
+}
+
+// GetAllMemberRoleFilterValues 获取所有群成员角色过滤器值
+func (f *Filter) GetAllMemberRoleFilterValues() (filters []string) {
+    if f.memberRole == nil {
+        return
+    }
+    
+    filters = make([]string, 0, len(f.memberRole))
+    for k, _ := range f.memberRole {
         filters = append(filters, k)
     }
     
