@@ -187,8 +187,8 @@ func (f *Friend) GetSNSCustomAttrs() (attrs map[string]interface{}) {
     return
 }
 
-// CheckError 检测参数错误
-func (f *Friend) CheckError() error {
+// checkError 检测参数错误
+func (f *Friend) checkError() error {
     if f.GetUserId() == "" {
         return errNotSetUserId
     }

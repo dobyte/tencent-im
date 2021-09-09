@@ -640,4 +640,214 @@ func main() {
         <td>基于安全等考虑，您可能需要获知服务器的 IP 地址列表，以便进行相关限制。App 管理员可以通过该接口获得 SDK、第三方回调所使用到的服务器 IP 地址列表或 IP 网段信息。</td>
         <td>√</td>
     </tr>
+    <tr>
+        <td rowspan="24">群组管理</td>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1614">拉取App中的所有群组ID</a>
+        </td>
+        <td>Group.FetchGroupIds</td>
+        <td>App 管理员可以通过该接口获取App中所有群组的ID。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1614">拉取App中的所有群组</a>
+        </td>
+        <td>Group.FetchGroups</td>
+        <td>本方法由“拉取App中的所有群组ID（FetchGroupIds）”拓展而来</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1615">创建群组</a>
+        </td>
+        <td>Group.CreateGroup</td>
+        <td>App 管理员可以通过该接口创建群组。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1616">获取单个群详细资料</a>
+        </td>
+        <td>Group.GetGroup</td>
+        <td>本方法由“获取多个群详细资料（GetGroups）”拓展而来</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1616">获取多个群详细资料</a>
+        </td>
+        <td>Group.GetGroups</td>
+        <td>App 管理员可以根据群组 ID 获取群组的详细信息。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1617">拉取群成员详细资料</a>
+        </td>
+        <td>Group.FetchMembers</td>
+        <td>App管理员可以根据群组ID获取群组成员的资料。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1620">修改群基础资料</a>
+        </td>
+        <td>Group.UpdateGroup</td>
+        <td>App管理员可以通过该接口修改指定群组的基础信息。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1621">增加群成员</a>
+        </td>
+        <td>Group.AddMembers</td>
+        <td>App管理员可以通过该接口向指定的群中添加新成员。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1622">删除群成员</a>
+        </td>
+        <td>Group.DeleteMembers</td>
+        <td>App管理员可以通过该接口删除群成员。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1623">修改群成员资料</a>
+        </td>
+        <td>Group.UpdateMember</td>
+        <td>App管理员可以通过该接口修改群成员资料。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1624">解散群组</a>
+        </td>
+        <td>Group.DestroyGroup</td>
+        <td>App管理员通过该接口解散群。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1625">拉取用户所加入的群组</a>
+        </td>
+        <td>Group.FetchMemberGroups</td>
+        <td>App管理员可以通过本接口获取某一用户加入的群信息。默认不获取用户已加入但未激活好友工作群（Work）以及直播群（AVChatRoom）群信息。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1626">查询用户在群组中的身份</a>
+        </td>
+        <td>Group.GetRolesInGroup</td>
+        <td>App管理员可以通过该接口获取一批用户在群内的身份，即“成员角色”。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1627">批量禁言</a>
+        </td>
+        <td>Group.ForbidSendMessage</td>
+        <td>
+            <ul>
+                <li>App 管理员禁止指定群组中某些用户在一段时间内发言。</li>
+                <li>App 管理员取消对某些用户的禁言。</li>
+                <li>被禁言用户退出群组之后再进入同一群组，禁言仍然有效。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1627">取消禁言</a>
+        </td>
+        <td>Group.AllowSendMessage</td>
+        <td>本方法由“批量禁言（ForbidSendMessage）”拓展而来</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/2925">获取被禁言群成员列表</a>
+        </td>
+        <td>Group.GetShuttedUpMembers</td>
+        <td>App管理员可以根据群组ID获取群组中被禁言的用户列表。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1629">在群组中发送普通消息</a>
+        </td>
+        <td>Group.SendMessage</td>
+        <td>App管理员可以通过该接口在群组中发送普通消息。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1630">在群组中发送系统通知</a>
+        </td>
+        <td>Group.SendNotification</td>
+        <td>App 管理员可以通过该接口在群组中发送系统通知。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1633">转让群主</a>
+        </td>
+        <td>Group.ChangeGroupOwner</td>
+        <td>
+            <ul>
+                <li>App 管理员可以通过该接口将群主身份转移给他人。</li>
+                <li>没有群主的群，App 管理员可以通过此接口指定他人作为群主。</li>
+                <li>新群主必须为群内成员。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/12341">撤回单条群消息</a>
+        </td>
+        <td>Group.RevokeMessage</td>
+        <td>本方法由“撤回多条群消息（RevokeMessages）”拓展而来</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/12341">撤回多条群消息</a>
+        </td>
+        <td>Group.RevokeMessages</td>
+        <td>App 管理员通过该接口撤回指定群组的消息，消息需要在漫游有效期以内。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1637">设置成员未读消息计数</a>
+        </td>
+        <td>Group.SetMemberUnreadMsgNum</td>
+        <td>
+            <ul>
+                <li>App管理员使用该接口设置群组成员未读消息数，不会触发回调、不会下发通知。</li>
+                <li>当App需要从其他即时通信系统迁移到即时通信 IM 时，使用该协议设置群成员的未读消息计数。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/2359">撤回指定用户发送的消息</a>
+        </td>
+        <td>Group.RevokeMemberMessages</td>
+        <td>该API接口的作用是撤回最近1000条消息中指定用户发送的消息。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/49180">获取直播群在线人数</a>
+        </td>
+        <td>Group.GetOnlineMemberNum</td>
+        <td>App 管理员可以根据群组 ID 获取直播群在线人数。</td>
+        <td>√</td>
+    </tr>
 </table>

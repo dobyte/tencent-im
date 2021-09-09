@@ -206,7 +206,7 @@ func (a *api) AddFriends(userId string, friends []*Friend, isSingleAdd bool, isF
     resp := &addFriendsResp{}
     
     for _, friend := range friends {
-        if err = friend.CheckError(); err != nil {
+        if err = friend.checkError(); err != nil {
             return
         }
         
@@ -275,7 +275,7 @@ func (a *api) ImportFriends(userId string, friends []*Friend) (results []Result,
     resp := &importFriendsResp{}
     
     for _, friend := range friends {
-        if err = friend.CheckError(); err != nil {
+        if err = friend.checkError(); err != nil {
             return
         }
         

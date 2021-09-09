@@ -15,7 +15,7 @@ import (
     "github.com/dobyte/tencent-im/internal/types"
 )
 
-var errNotSetMsgReceiver = errors.New("Message receiver is not set")
+var errNotSetMsgReceiver = errors.New("message receiver is not set")
 
 type Message struct {
     entity.Message
@@ -159,7 +159,11 @@ func (m *Message) GetSendMsgControl() (controls []string) {
 
 // CheckError 检测错误
 func (m *Message) CheckError() (err error) {
-    if err = m.CheckArgError(); err != nil {
+    if err = m.CheckLifeTimeArgError(); err != nil {
+        return
+    }
+
+    if err = m.CheckBodyArgError(); err != nil {
         return
     }
     

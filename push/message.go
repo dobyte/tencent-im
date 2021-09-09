@@ -9,7 +9,7 @@ package push
 
 import (
 	"errors"
-	
+
 	"github.com/dobyte/tencent-im/internal/entity"
 )
 
@@ -29,7 +29,7 @@ func (m *Message) SetConditionTagsOr(tags ...string) {
 	if m.condition != nil && m.condition.TagsOr != nil {
 		m.condition.TagsOr = m.condition.TagsOr[0:0]
 	}
-	
+
 	m.AddConditionTagsOr(tags...)
 }
 
@@ -49,7 +49,7 @@ func (m *Message) SetConditionTagsAnd(tags ...string) {
 	if m.condition != nil && m.condition.TagsAnd != nil {
 		m.condition.TagsAnd = m.condition.TagsAnd[0:0]
 	}
-	
+
 	m.AddConditionTagsAnd(tags...)
 }
 
@@ -69,7 +69,7 @@ func (m *Message) SetConditionAttrsOr(attrs map[string]interface{}) {
 	if m.condition != nil && m.condition.AttrsOr != nil {
 		m.condition.AttrsOr = make(map[string]interface{})
 	}
-	
+
 	m.AddConditionAttrsOr(attrs)
 }
 
@@ -91,7 +91,7 @@ func (m *Message) SetConditionAttrsAnd(attrs map[string]interface{}) {
 	if m.condition != nil && m.condition.AttrsAnd != nil {
 		m.condition.AttrsAnd = make(map[string]interface{})
 	}
-	
+
 	m.AddConditionAttrsAnd(attrs)
 }
 
@@ -113,36 +113,40 @@ func (m *Message) GetCondition() *condition {
 	return m.condition
 }
 
-// CheckError 检测错误
-func (m *Message) CheckError() (err error) {
-	if err = m.CheckArgError(); err != nil {
+// checkError 检测错误
+func (m *Message) checkError() (err error) {
+	if err = m.CheckLifeTimeArgError(); err != nil {
 		return
 	}
-	
+
+	if err = m.CheckBodyArgError(); err != nil {
+		return
+	}
+
 	if err = m.checkConditionArgError(); err != nil {
 		return
 	}
-	
+
 	return
 }
 
 // checkConditionArgError 检测条件参数错误
 func (m *Message) checkConditionArgError() error {
 	hasAttrs, hasTags := false, false
-	
+
 	if m.condition != nil {
 		if m.condition.AttrsAnd != nil || m.condition.AttrsOr != nil {
 			hasAttrs = true
 		}
-		
+
 		if m.condition.TagsAnd != nil || m.condition.TagsOr != nil {
 			hasTags = true
 		}
 	}
-	
+
 	if hasAttrs && hasTags {
 		return errInvalidPushCondition
 	}
-	
+
 	return nil
 }

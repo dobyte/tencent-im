@@ -118,7 +118,7 @@ func NewAPI(client core.Client) API {
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/45934
 func (a *api) PushMessage(message *Message) (taskId string, err error) {
-    if err = message.CheckError(); err != nil {
+    if err = message.checkError(); err != nil {
         return
     }
     
