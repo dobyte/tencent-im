@@ -641,7 +641,7 @@ func main() {
         <td>√</td>
     </tr>
     <tr>
-        <td rowspan="24">群组管理</td>
+        <td rowspan="28">群组管理</td>
         <td>
             <a href="https://cloud.tencent.com/document/product/269/1614">拉取App中的所有群组ID</a>
         </td>
@@ -874,6 +874,20 @@ func main() {
         </td>
         <td>Group.RevokeMemberMessages</td>
         <td>该API接口的作用是撤回最近1000条消息中指定用户发送的消息。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/2738">拉取群历史消息</a>
+        </td>
+        <td>Group.FetchMessages</td>
+        <td>
+            <ul>
+                <li>即时通信 IM 的群消息是按 Seq 排序的，按照 server 收到群消息的顺序分配 Seq，先发的群消息 Seq 小，后发的 Seq 大。</li>
+                <li>如果用户想拉取一个群的全量消息，首次拉取时不用填拉取 Seq，Server 会自动返回最新的消息，以后拉取时拉取 Seq 填上次返回的最小 Seq 减1。</li>
+                <li>如果返回消息的 IsPlaceMsg 为1，表示这个 Seq 的消息或者过期、或者存储失败、或者被删除了。</li>
+            </ul>
+        </td>
         <td>√</td>
     </tr>
     <tr>
