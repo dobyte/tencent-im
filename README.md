@@ -48,11 +48,11 @@ func main() {
 
 <table>
     <tr>
-        <td width="10%">模块</td>
-        <td width="10%">名称</td>
+        <td width="100">模块</td>
+        <td width="100">名称</td>
         <td>方法</td>
         <td>说明</td>
-        <td width="5%">master</td>
+        <td>master</td>
     </tr>
     <tr>
         <td rowspan="9">账号管理</td>
@@ -819,6 +819,40 @@ func main() {
         </td>
         <td>Group.RevokeMessages</td>
         <td>App 管理员通过该接口撤回指定群组的消息，消息需要在漫游有效期以内。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1634">导入群基础资料</a>
+        </td>
+        <td>Group.ImportGroup</td>
+        <td>App 管理员可以通过该接口导入群组，不会触发回调、不会下发通知；当 App 需要从其他即时通信系统迁移到即时通信 IM 时，使用该协议导入存量群组数据。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1635">导入群消息</a>
+        </td>
+        <td>Group.ImportMembers</td>
+        <td>
+            <ul>
+                <li>该 API 接口的作用是导入群组的消息，不会触发回调、不会下发通知。</li>
+                <li>当 App 需要从其他即时通信系统迁移到即时通信 IM 时，使用该协议导入存量群消息数据。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1636">导入多个群成员</a>
+        </td>
+        <td>Group.ImportMembers</td>
+        <td>
+            <ul>
+                <li>该 API 接口的作用是导入群组成员，不会触发回调、不会下发通知。</li>
+                <li>当 App 需要从其他即时通信系统迁移到即时通信 IM 时，使用该协议导入存量群成员数据。</li>
+            </ul>
+        </td>
         <td>√</td>
     </tr>
     <tr>
