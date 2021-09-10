@@ -1,6 +1,6 @@
 /**
- * @Author: wanglin
- * @Author: wanglin@vspn.com
+ * @Author: fuxiao
+ * @Author: 576101059@qq.com
  * @Date: 2021/9/3 18:15
  * @Desc: 推送消息实体
  */

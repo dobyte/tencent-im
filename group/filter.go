@@ -1,6 +1,6 @@
 /**
- * @Author: wanglin
- * @Author: wanglin@vspn.com
+ * @Author: fuxiao
+ * @Author: 576101059@qq.com
  * @Date: 2021/9/8 10:17
  * @Desc: 群组响应过滤器
  */
