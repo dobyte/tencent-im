@@ -13,7 +13,7 @@ import (
 )
 
 const (
-    serviceName        = "Profile"
+    serviceName        = "profile"
     commandSetProfile  = "portrait_set"
     commandGetProfiles = "portrait_get"
 )
