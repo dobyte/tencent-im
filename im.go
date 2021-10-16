@@ -8,6 +8,8 @@
 package im
 
 import (
+	"time"
+	
 	"github.com/dobyte/tencent-im/account"
 	"github.com/dobyte/tencent-im/group"
 	"github.com/dobyte/tencent-im/internal/core"
@@ -25,7 +27,7 @@ type Error = core.Error
 type (
 	IM interface {
 		// GetUserSig 获取UserSig签名
-		GetUserSig() string
+		GetUserSig() UserSig
 		// SNS 获取关系链管理接口
 		SNS() sns.API
 		// Mute 获取全局禁言管理接口
@@ -51,6 +53,11 @@ type (
 		Expire    int    // UserSig过期时间
 	}
 	
+	UserSig struct {
+		UserSig  string // 用户签名
+		ExpireAt int64  // 签名过期时间
+	}
+	
 	im struct {
 		opt    Options
 		client core.Client
@@ -67,9 +74,10 @@ func NewIM(opt Options) IM {
 }
 
 // GetUserSig 获取UserSig签名
-func (i *im) GetUserSig() string {
+func (i *im) GetUserSig() UserSig {
 	userSig, _ := sign.GenUserSig(i.opt.AppId, i.opt.AppSecret, i.opt.UserId, i.opt.Expire)
-	return userSig
+	expireAt := time.Now().Add(time.Duration(i.opt.Expire) * time.Second).Unix()
+	return UserSig{UserSig: userSig, ExpireAt: expireAt}
 }
 
 // SNS 获取关系链管理接口
