@@ -18,23 +18,21 @@ import (
     "time"
 )
 
-// GenUserSign gen a user sign.
-func GenUserSign(sdkAppId int, key string, userid string, expire int) (string, error) {
-    return genSign(sdkAppId, key, userid, expire, nil)
+// GenUserSig gen a user sign.
+func GenUserSig(sdkAppId int, key string, userid string, expire int) (string, error) {
+    return genUserSig(sdkAppId, key, userid, expire, nil)
 }
 
 // GenPrivateMapKey gen a private map.
 func GenPrivateMapKey(sdkAppId int, key string, userid string, expire int, roomId uint32, privilegeMap uint32) (string, error) {
     var userBuf []byte = genUserBuf(userid, sdkAppId, roomId, expire, privilegeMap, 0, "")
-    
-    return genSign(sdkAppId, key, userid, expire, userBuf)
+    return genUserSig(sdkAppId, key, userid, expire, userBuf)
 }
 
 // GenPrivateMapKeyWithRoomId gen a private map with room id.
 func GenPrivateMapKeyWithRoomId(sdkAppId int, key string, userid string, expire int, roomId string, privilegeMap uint32) (string, error) {
     var userBuf []byte = genUserBuf(userid, sdkAppId, 0, expire, privilegeMap, 0, roomId)
-    
-    return genSign(sdkAppId, key, userid, expire, userBuf)
+    return genUserSig(sdkAppId, key, userid, expire, userBuf)
 }
 
 // genUserBuf gen a user buffer.
@@ -148,8 +146,8 @@ func hmacSha256(sdkAppId int, key string, identifier string, currTime int64, exp
     return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
-// genSign gen a sign
-func genSign(sdkAppId int, key string, identifier string, expire int, userBuf []byte) (string, error) {
+// genUserSig gen a sign
+func genUserSig(sdkAppId int, key string, identifier string, expire int, userBuf []byte) (string, error) {
     currTime := time.Now().Unix()
     var sigDoc map[string]interface{}
     sigDoc = make(map[string]interface{})
