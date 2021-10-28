@@ -9,8 +9,9 @@ package im
 
 import (
 	"time"
-	
+
 	"github.com/dobyte/tencent-im/account"
+	"github.com/dobyte/tencent-im/callback"
 	"github.com/dobyte/tencent-im/group"
 	"github.com/dobyte/tencent-im/internal/core"
 	"github.com/dobyte/tencent-im/internal/sign"
@@ -19,6 +20,7 @@ import (
 	"github.com/dobyte/tencent-im/private"
 	"github.com/dobyte/tencent-im/profile"
 	"github.com/dobyte/tencent-im/push"
+	"github.com/dobyte/tencent-im/session"
 	"github.com/dobyte/tencent-im/sns"
 )
 
@@ -42,30 +44,34 @@ type (
 		Profile() profile.API
 		// Private 获取私聊消息接口
 		Private() private.API
+		// Session 获取最近联系人接口
+		Session() session.API
 		// Operation 获取运营管理接口
 		Operation() operation.API
+		// Callback 获取回调接口
+		Callback() callback.Callback
 	}
-	
+
 	Options struct {
 		AppId     int    // 应用SDKAppID，可在即时通信 IM 控制台 的应用卡片中获取。
 		AppSecret string // 密钥信息，可在即时通信 IM 控制台 的应用详情页面中获取，具体操作请参见 获取密钥
 		UserId    string // 用户ID
 		Expire    int    // UserSig过期时间
 	}
-	
+
 	UserSig struct {
 		UserSig  string // 用户签名
 		ExpireAt int64  // 签名过期时间
 	}
-	
+
 	im struct {
-		opt    Options
+		opt    *Options
 		client core.Client
 	}
 )
 
-func NewIM(opt Options) IM {
-	return &im{opt: opt, client: core.NewClient(core.Options{
+func NewIM(opt *Options) IM {
+	return &im{opt: opt, client: core.NewClient(&core.Options{
 		AppId:     opt.AppId,
 		AppSecret: opt.AppSecret,
 		UserId:    opt.UserId,
@@ -115,11 +121,17 @@ func (i *im) Private() private.API {
 	return private.NewAPI(i.client)
 }
 
+// Session 获取最近联系人接口
+func (i *im) Session() session.API {
+	return session.NewAPI(i.client)
+}
+
 // Operation 获取运营管理接口
 func (i *im) Operation() operation.API {
 	return operation.NewAPI(i.client)
 }
 
-func (i *im) Callback() {
-
+// Callback 获取回调接口
+func (i *im) Callback() callback.Callback {
+	return callback.NewCallback(i.opt.AppId)
 }

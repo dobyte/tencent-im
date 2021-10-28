@@ -12,9 +12,9 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
-	
+
 	"github.com/dobyte/http"
-	
+
 	"github.com/dobyte/tencent-im/internal/enum"
 	"github.com/dobyte/tencent-im/internal/sign"
 	"github.com/dobyte/tencent-im/internal/types"
@@ -44,7 +44,7 @@ type Client interface {
 
 type client struct {
 	client          *http.Client
-	opt             Options
+	opt             *Options
 	userSig         string
 	userSigExpireAt int64
 }
@@ -56,14 +56,14 @@ type Options struct {
 	Expire    int    // UserSig过期时间
 }
 
-func NewClient(opt Options) Client {
+func NewClient(opt *Options) Client {
 	rand.Seed(time.Now().UnixNano())
 	c := new(client)
 	c.opt = opt
 	c.client = http.NewClient()
 	c.client.SetContentType(http.ContentTypeJson)
 	c.client.SetBaseUrl(defaultBaseUrl)
-	
+
 	return c
 }
 
@@ -102,12 +102,12 @@ func (c *client) request(method, serviceName, command string, data, resp interfa
 	if err = res.Scan(resp); err != nil {
 		return err
 	}
-	
+
 	if r, ok := resp.(types.ActionBaseRespInterface); ok {
 		if r.GetActionStatus() == enum.FailActionStatus {
 			return NewError(r.GetErrorCode(), r.GetErrorInfo())
 		}
-		
+
 		if r.GetErrorCode() != enum.SuccessCode {
 			return NewError(r.GetErrorCode(), r.GetErrorInfo())
 		}
@@ -118,7 +118,7 @@ func (c *client) request(method, serviceName, command string, data, resp interfa
 	} else {
 		return invalidResponse
 	}
-	
+
 	return nil
 }
 
@@ -134,15 +134,15 @@ func (c *client) buildUrl(serviceName string, command string) string {
 func (c *client) getUserSig() string {
 	now := time.Now()
 	expire := c.opt.Expire
-	
+
 	if expire <= 0 {
 		expire = defaultExpire
 	}
-	
+
 	if c.userSig == "" || c.userSigExpireAt <= now.Unix() {
 		c.userSig, _ = sign.GenUserSig(c.opt.AppId, c.opt.AppSecret, c.opt.UserId, expire)
 		c.userSigExpireAt = now.Add(time.Duration(expire) * time.Second).Unix()
 	}
-	
+
 	return c.userSig
 }

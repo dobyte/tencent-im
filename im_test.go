@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"testing"
 	"time"
-	
+
 	"github.com/dobyte/tencent-im"
 	"github.com/dobyte/tencent-im/account"
 	"github.com/dobyte/tencent-im/group"
@@ -38,7 +38,7 @@ const (
 )
 
 func NewIM() im.IM {
-	return im.NewIM(im.Options{
+	return im.NewIM(&im.Options{
 		AppId:     1400564830,
 		AppSecret: "0d2a321b087fdb8fd5ed5ea14fe0489139086eb1b03541774fc9feeab8f2bfd3",
 		UserId:    "administrator",
@@ -56,25 +56,24 @@ func NewIM() im.IM {
 // GetUserSig 获取UserSig签名
 func TestIm_GetUserSig(t *testing.T) {
 	tim := NewIM()
-	
+
 	for i := 0; i < 1000; i++ {
 		tim.GetUserSig()
 	}
-	
+
 	t.Log("Success")
 }
 
 // 导入单个账号
 func TestIm_Account_ImportAccount(t *testing.T) {
-	if err := NewIM().Account().ImportAccount(account.Info{
-		UserId:    assistant,
-		Nickname:  "小助手",
-		AvatarUrl: "http://www.qq.com",
+	if err := NewIM().Account().ImportAccount(&account.Info{
+		Account:  assistant,
+		Nickname: "小助手",
+		FaceUrl:  "http://www.qq.com",
 	}); err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -92,10 +91,9 @@ func TestIm_Account_ImportAccounts(t *testing.T) {
 		test9,
 	)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
-	
+
 	t.Log(failedAccounts)
 }
 
@@ -103,10 +101,9 @@ func TestIm_Account_ImportAccounts(t *testing.T) {
 func TestIm_Account_DeleteAccount(t *testing.T) {
 	err := NewIM().Account().DeleteAccount(test1)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -124,10 +121,9 @@ func TestIm_Account_DeleteAccounts(t *testing.T) {
 		test9,
 	)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
-	
+
 	t.Log(deleteResults)
 }
 
@@ -145,20 +141,18 @@ func TestIm_Account_CheckAccounts(t *testing.T) {
 		test9,
 	)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
-	
+
 	t.Log(checkResults)
 }
 
 // 使帐号登录状态失效
 func TestIm_Account_KickAccount(t *testing.T) {
 	if err := NewIM().Account().KickAccount(test1); err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -166,10 +160,9 @@ func TestIm_Account_KickAccount(t *testing.T) {
 func TestIm_Account_QueryAccountOnlineStatus(t *testing.T) {
 	ret, err := NewIM().Account().GetAccountOnlineState(test2, true)
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
-	
+
 	t.Log(ret)
 }
 
@@ -180,10 +173,9 @@ func TestIm_Account_QueryAccountsOnlineStatus(t *testing.T) {
 		test2,
 	})
 	if err != nil {
-		t.Error(err)
-		return
+		t.Fatal(err)
 	}
-	
+
 	t.Log(resp.Results)
 	t.Log(resp.Errors)
 }
@@ -204,13 +196,13 @@ func TestIm_Push_Push(t *testing.T) {
 	})
 	message.OfflinePush().SetAndroidExtAsHuaweiIntentParam(push.HuaweiIntentParamIntent)
 	message.OfflinePush().SetApnsBadgeMode(push.BadgeModeNormal)
-	
+
 	taskId, err := NewIM().Push().PushMessage(message)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(taskId)
 }
 
@@ -223,7 +215,7 @@ func TestIm_Push_SetAttrNames(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -234,7 +226,7 @@ func TestIm_Push_GetAttrNames(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(ret)
 }
 
@@ -245,7 +237,7 @@ func TestIm_Push_GetUserAttrs(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(ret)
 }
 
@@ -261,7 +253,7 @@ func TestIm_Push_SetUserAttrs(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -274,7 +266,7 @@ func TestIm_Push_DeleteUserAttrs(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -285,7 +277,7 @@ func TestIm_Push_GetUserTags(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(ret)
 }
 
@@ -298,7 +290,7 @@ func TestIm_Push_AddUserTags(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -311,7 +303,7 @@ func TestIm_Push_DeleteUserTags(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -322,7 +314,7 @@ func TestIm_Push_DeleteUserAllTags(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -335,12 +327,12 @@ func TestIm_Profile_SetProfile(t *testing.T) {
 	p.SetLocation(1, 23, 27465, 92)
 	// p.SetLocation(1, 23, 2, 92)
 	p.SetLanguage(20)
-	
+
 	if err := NewIM().Profile().SetProfile(p); err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -359,7 +351,7 @@ func TestIm_Profile_GetProfile(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	for _, p := range profiles {
 		t.Log(p.GetUserId())
 		t.Log(p.GetNickname())
@@ -377,7 +369,7 @@ func TestIm_Operation_GetOperationData(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(data)
 }
 
@@ -388,7 +380,7 @@ func TestIm_Operation_GetHistoryData(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(files)
 }
 
@@ -399,7 +391,7 @@ func TestIm_Operation_GetIpList(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(ips)
 }
 
@@ -411,7 +403,7 @@ func TestIm_Mute_SetNoSpeaking(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -422,7 +414,7 @@ func TestIm_Mute_GetNoSpeaking(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(privateMuteTime)
 	t.Log(groupMuteTime)
 }
@@ -430,7 +422,7 @@ func TestIm_Mute_GetNoSpeaking(t *testing.T) {
 // 添加好友
 func TestIm_SNS_AddFriends(t *testing.T) {
 	friends := make([]*sns.Friend, 0)
-	
+
 	var friend *sns.Friend
 	var userIds []string
 	var userId string
@@ -442,28 +434,28 @@ func TestIm_SNS_AddFriends(t *testing.T) {
 		friends = append(friends, friend)
 		userIds = append(userIds, userId)
 	}
-	
+
 	failUserIds, err := NewIM().Account().ImportAccounts(userIds...)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(failUserIds)
-	
+
 	results, err := NewIM().SNS().AddFriends("assistant", friends, true, false)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(results)
 }
 
 // 导入好友
 func TestIm_SNS_ImportFriends(t *testing.T) {
 	friends := make([]*sns.Friend, 0)
-	
+
 	var friend *sns.Friend
 	var userIds []string
 	var userId string
@@ -481,28 +473,28 @@ func TestIm_SNS_ImportFriends(t *testing.T) {
 		friends = append(friends, friend)
 		userIds = append(userIds, userId)
 	}
-	
+
 	failUserIds, err := NewIM().Account().ImportAccounts(userIds...)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(failUserIds)
-	
+
 	results, err := NewIM().SNS().ImportFriends("assistant", friends)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(results)
 }
 
 // 更新好友
 func TestIm_SNS_UpdateFriends(t *testing.T) {
 	friends := make([]*sns.Friend, 0)
-	
+
 	var friend *sns.Friend
 	var userIds []string
 	var userId string
@@ -520,21 +512,21 @@ func TestIm_SNS_UpdateFriends(t *testing.T) {
 		friends = append(friends, friend)
 		userIds = append(userIds, userId)
 	}
-	
+
 	failUserIds, err := NewIM().Account().ImportAccounts(userIds...)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(failUserIds)
-	
+
 	results, err := NewIM().SNS().UpdateFriends("assistant", friends)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(results)
 }
 
@@ -546,13 +538,13 @@ func TestIm_SNS_DeleteFriends(t *testing.T) {
 		userId = "test" + strconv.Itoa(i)
 		userIds = append(userIds, userId)
 	}
-	
+
 	results, err := NewIM().SNS().DeleteFriends("assistant", userIds, false)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(results)
 }
 
@@ -563,7 +555,7 @@ func TestIm_SNS_DeleteAllFriends(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -575,13 +567,13 @@ func TestIm_SNS_CheckFriends(t *testing.T) {
 		userId = "test" + strconv.Itoa(i)
 		userIds = append(userIds, userId)
 	}
-	
+
 	results, err := NewIM().SNS().CheckFriends("assistant", userIds, sns.CheckTypeSingle)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(results)
 }
 
@@ -593,7 +585,7 @@ func TestIm_SNS_GetFriends(t *testing.T) {
 		userId = "test" + strconv.Itoa(i)
 		userIds = append(userIds, userId)
 	}
-	
+
 	friends, err := NewIM().SNS().GetFriends("assistant", userIds, []string{
 		sns.FriendAttrAddSource,
 		sns.FriendAttrRemark,
@@ -608,7 +600,7 @@ func TestIm_SNS_GetFriends(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	// 第一种获取方式
 	for _, friend := range friends {
 		if friend.IsValid() {
@@ -622,7 +614,7 @@ func TestIm_SNS_GetFriends(t *testing.T) {
 			fmt.Println()
 		}
 	}
-	
+
 	// 第二种获取方式
 	for _, friend := range friends {
 		if err := friend.GetError(); err != nil {
@@ -650,18 +642,18 @@ func TestIm_SNS_FetchFriends(t *testing.T) {
 		standardSequence = 0
 		customSequence   = 0
 	)
-	
+
 	for ret == nil || !ret.IsOver {
 		ret, err = s.FetchFriends("assistant", startIndex, standardSequence, customSequence)
 		if err != nil {
 			t.Error(err)
 			return
 		}
-		
+
 		startIndex = ret.NextStartIndex
 		standardSequence = ret.StandardSequence
 		customSequence = ret.CustomSequence
-		
+
 		t.Log("下一个开始点：", ret.NextStartIndex)
 		t.Log("是否拉取完毕：", ret.IsOver)
 		t.Log("标准排序：", ret.StandardSequence)
@@ -692,13 +684,13 @@ func TestIm_SNS_AddBlacklist(t *testing.T) {
 		userId = "test" + strconv.Itoa(i)
 		userIds = append(userIds, userId)
 	}
-	
+
 	results, err := NewIM().SNS().AddBlacklist("assistant", userIds)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(results)
 }
 
@@ -710,13 +702,13 @@ func TestIm_SNS_DeleteBlacklist(t *testing.T) {
 		userId = "test" + strconv.Itoa(i)
 		userIds = append(userIds, userId)
 	}
-	
+
 	results, err := NewIM().SNS().DeleteBlacklist("assistant", userIds)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(results)
 }
 
@@ -730,17 +722,17 @@ func TestIm_SNS_FetchBlacklist(t *testing.T) {
 		maxLimited       = 2
 		standardSequence = 0
 	)
-	
+
 	for ret == nil || !ret.IsOver {
 		ret, err = s.FetchBlacklist("assistant", startIndex, maxLimited, standardSequence)
 		if err != nil {
 			t.Error(err)
 			return
 		}
-		
+
 		startIndex = ret.NextStartIndex
 		standardSequence = ret.StandardSequence
-		
+
 		t.Log("下一个开始点：", startIndex)
 		t.Log("标准排序：", standardSequence)
 		t.Log("黑名单列表：")
@@ -761,13 +753,13 @@ func TestIm_SNS_CheckBlacklist(t *testing.T) {
 		userId = "test" + strconv.Itoa(i)
 		userIds = append(userIds, userId)
 	}
-	
+
 	results, err := NewIM().SNS().CheckBlacklist("assistant", userIds, sns.BlacklistCheckTypeSingle)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	for _, result := range results {
 		if result.ResultCode == 0 {
 			t.Log(result.UserId)
@@ -794,7 +786,7 @@ func TestIm_SNS_AddGroups(t *testing.T) {
 		userId = "test" + strconv.Itoa(i)
 		userIds = append(userIds, userId)
 	}
-	
+
 	_, results, err := NewIM().SNS().AddGroups("assistant", []string{
 		"测试3",
 		"测试4",
@@ -803,7 +795,7 @@ func TestIm_SNS_AddGroups(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(results)
 }
 
@@ -817,7 +809,7 @@ func TestIm_SNS_DeleteGroups(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -832,13 +824,13 @@ func TestIm_SNS_GetGroups(t *testing.T) {
 		}
 		results []sns.GroupResult
 	)
-	
+
 	lastSequence, results, err = NewIM().SNS().GetGroups("assistant", lastSequence, true, groupName)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(results)
 }
 
@@ -860,13 +852,13 @@ func TestIm_Private_SendMessage(t *testing.T) {
 	})
 	message.OfflinePush().SetAndroidExtAsHuaweiIntentParam(private.HuaweiIntentParamIntent)
 	message.OfflinePush().SetApnsBadgeMode(private.BadgeModeNormal)
-	
+
 	ret, err := NewIM().Private().SendMessage(message)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(ret.MsgKey)
 	t.Log(ret.MsgTime)
 }
@@ -879,13 +871,13 @@ func TestIm_Private_SendMessages(t *testing.T) {
 	message.SetContent(private.MsgTextContent{
 		Text: "Hello world",
 	})
-	
+
 	ret, err := NewIM().Private().SendMessages(message)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(ret.MsgKey)
 	t.Log(ret.Errors)
 }
@@ -900,13 +892,13 @@ func TestIm_Private_ImportMessage(t *testing.T) {
 	message.SetContent(private.MsgTextContent{
 		Text: "Hello world",
 	})
-	
+
 	err := NewIM().Private().ImportMessage(message)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -924,19 +916,19 @@ func TestIm_Private_FetchMessages(t *testing.T) {
 			MaxTime:    time.Now().Unix(),
 		}
 	)
-	
+
 	for ret == nil || !ret.IsOver {
 		ret, err = p.FetchMessages(arg)
 		if err != nil {
 			t.Error(err)
 			return
 		}
-		
+
 		if !ret.IsOver {
 			arg.LastMsgKey = ret.LastMsgKey
 			arg.MaxTime = ret.LastMsgTime
 		}
-		
+
 		t.Log(ret.IsOver)
 		t.Log(ret.LastMsgKey)
 		t.Log(ret.LastMsgTime)
@@ -966,7 +958,7 @@ func TestIm_Private_PullMessages(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -977,7 +969,7 @@ func TestIm_Private_RevokeMessage(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -988,7 +980,7 @@ func TestIm_Private_SetMessageRead(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -1002,7 +994,7 @@ func TestIm_Private_GetUnreadMessageNum(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(ret.Total)
 	t.Log(ret.UnreadList)
 	t.Log(ret.ErrorList)
@@ -1018,20 +1010,20 @@ func TestIm_Group_CreateGroup(t *testing.T) {
 	// g.SetId("test_group1")
 	g.SetIntroduction("这是一个测试群")
 	g.SetNotification("这是一个测试群公告")
-	
+
 	for i := 1; i < 10; i++ {
 		member := group.NewMember()
 		member.SetUserId("test" + strconv.Itoa(i))
 		member.SetJoinTime(time.Now())
 		g.AddMembers(member)
 	}
-	
+
 	groupId, err := NewIM().Group().CreateGroup(g)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(groupId)
 }
 
@@ -1042,7 +1034,7 @@ func TestIm_Group_DestroyGroup(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -1053,7 +1045,7 @@ func TestIm_Group_GetGroup(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	if g != nil {
 		t.Log(g.GetId())
 		t.Log(g.GetName())
@@ -1072,7 +1064,7 @@ func TestIm_Group_GetGroups(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	for _, g := range groups {
 		if err = g.GetError(); err != nil {
 			t.Error(err)
@@ -1096,7 +1088,7 @@ func TestIm_Group_AddGroupMembers(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(results)
 }
 
@@ -1111,7 +1103,7 @@ func TestIm_Group_DeleteGroupMembers(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -1122,7 +1114,7 @@ func TestIm_Group_ChangeGroupOwner(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -1136,13 +1128,13 @@ func TestIm_Group_UpdateGroup(t *testing.T) {
 	g.SetId("test_group1")
 	g.SetIntroduction("这是一个测试群")
 	g.SetNotification("这是一个测试群公告")
-	
+
 	err := NewIM().Group().UpdateGroup(g)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -1157,7 +1149,7 @@ func TestIm_Group_GetRolesInGroup(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(ret)
 }
 
@@ -1168,10 +1160,10 @@ func TestIm_Group_FetchGroupMembers(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(ret.HasMore)
 	t.Log(ret.Total)
-	
+
 	for _, member := range ret.List {
 		t.Log(member.GetUserId())
 	}
@@ -1184,7 +1176,7 @@ func TestIm_Group_FetchGroupIds(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(ret.Total)
 	t.Log(ret.Next)
 	t.Log(ret.HasMore)
@@ -1198,11 +1190,11 @@ func TestIm_Group_FetchGroups(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(ret.Total)
 	t.Log(ret.Next)
 	t.Log(ret.HasMore)
-	
+
 	for _, g := range ret.List {
 		t.Log(g.GetId())
 		t.Log(g.GetOwner())
@@ -1216,13 +1208,13 @@ func TestIm_Group_UpdateGroupMember(t *testing.T) {
 	member.SetRole("Admin")
 	member.SetNameCard("这是一个测试名片信息")
 	member.SetMsgFlag(group.MsgFlagAcceptAndNotify)
-	
+
 	err := NewIM().Group().UpdateMember("test_group1", member)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -1239,7 +1231,7 @@ func TestIm_Group_FetchMemberGroups(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(ret.Total)
 	t.Log(ret.HasMore)
 	t.Log(ret.List)
@@ -1254,7 +1246,7 @@ func TestIm_Group_ForbidSendMessage(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -1268,7 +1260,7 @@ func TestIm_Group_AllowSendMessage(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -1279,7 +1271,7 @@ func TestIm_Group_GetShuttedUpMembers(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(shuttedUps)
 }
 
@@ -1290,7 +1282,7 @@ func TestIm_Group_RevokeMessage(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -1301,7 +1293,7 @@ func TestIm_Group_RevokeMessages(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(results)
 }
 
@@ -1312,7 +1304,7 @@ func TestIm_Group_SetMemberUnreadMsgNum(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -1323,7 +1315,7 @@ func TestIm_Group_RevokeMemberMessages(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -1348,13 +1340,13 @@ func TestIm_Group_SendMessage(t *testing.T) {
 	message.AtAllMembers()
 	message.AtMembers(test2)
 	message.ClearAtMembers()
-	
+
 	ret, err := NewIM().Group().SendMessage("test_group1", message)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(ret.MsgSeq)
 	t.Log(ret.MsgTime)
 }
@@ -1366,7 +1358,7 @@ func TestIm_Group_SendNotification(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log("Success")
 }
 
@@ -1379,13 +1371,13 @@ func TestIm_Group_ImportGroup(t *testing.T) {
 	g.SetAvatar("http://www.baidu.com")
 	g.SetIntroduction("这是一个测试群")
 	g.SetNotification("这是一个测试群公告")
-	
+
 	groupId, err := NewIM().Group().ImportGroup(g)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(groupId)
 }
 
@@ -1398,13 +1390,13 @@ func TestIm_Group_ImportMessages(t *testing.T) {
 	message.SetContent(private.MsgTextContent{
 		Text: "Hello world",
 	})
-	
+
 	results, err := NewIM().Group().ImportMessages("test_group1", message)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(results)
 }
 
@@ -1419,13 +1411,13 @@ func TestIm_Group_ImportMembers(t *testing.T) {
 		member.SetJoinTime(time.Now())
 		members = append(members, member)
 	}
-	
+
 	results, err := NewIM().Group().ImportMembers("@TGS#25J4AWNHA", members...)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(results)
 }
 
@@ -1436,6 +1428,6 @@ func TestIm_Group_FetchMessages(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	
+
 	t.Log(ret)
 }
