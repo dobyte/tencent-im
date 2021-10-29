@@ -898,4 +898,21 @@ func main() {
         <td>App 管理员可以根据群组 ID 获取直播群在线人数。</td>
         <td>√</td>
     </tr>
+    <tr>
+        <td rowspan="2">最近联系人</td>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/62118">拉取会话列表</a>
+        </td>
+        <td>RecentContact.FetchSessions</td>
+        <td>支持分页拉取会话列表。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/62119">删除单个会话</a>
+        </td>
+        <td>RecentContact.DeleteSession</td>
+        <td>删除指定会话，支持同步清理漫游消息。</td>
+        <td>√</td>
+    </tr>
 </table>

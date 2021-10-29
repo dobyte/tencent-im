@@ -9,6 +9,26 @@ package sns
 
 import "github.com/dobyte/tencent-im/internal/enum"
 
+type (
+	// AddType 添加类型
+	AddType string
+
+	// DeleteType 删除类型
+	DeleteType string
+
+	// CheckType 校验模式
+	CheckType string
+
+	// ForceAddType 强制添加类型
+	ForceAddType int
+
+	// BlacklistCheckType 黑名单校验模式
+	BlacklistCheckType string
+
+	// NeedFriendType 是否需要拉取分组下的User列表
+	NeedFriendType string
+)
+
 const (
 	// 标准资料字段
 	StandardAttrNickname        = enum.StandardAttrNickname        // 昵称
@@ -47,6 +67,14 @@ const (
 	// 黑名单校验模式
 	BlacklistCheckTypeSingle BlacklistCheckType = "BlackCheckResult_Type_Single" // 单向校验黑名单关系
 	BlacklistCheckTypeBoth   BlacklistCheckType = "BlackCheckResult_Type_Both"   // 双向校验黑名单关系
+
+	// 强制加好友类型
+	ForceAddYes ForceAddType = 1 // 强制加好友
+	ForceAddNo  ForceAddType = 0 // 常规加好友
+
+	// 是否需要拉取分组下的 User 列表
+	NeedFriendYes NeedFriendType = "Need_Friend_Type_Yes" // 需要拉取
+	NeedFriendNo  NeedFriendType = "Need_Friend_Type_No"  // 不需要拉取
 
 	// 好友关系结果
 	CheckResultTypeNoRelation = "CheckResult_Type_NoRelation" // From_Account 的好友表中没有 To_Account，但无法确定 To_Account 的好友表中是否有 From_Account

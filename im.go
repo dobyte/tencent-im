@@ -20,7 +20,7 @@ import (
 	"github.com/dobyte/tencent-im/private"
 	"github.com/dobyte/tencent-im/profile"
 	"github.com/dobyte/tencent-im/push"
-	"github.com/dobyte/tencent-im/session"
+	"github.com/dobyte/tencent-im/recentcontact"
 	"github.com/dobyte/tencent-im/sns"
 )
 
@@ -44,10 +44,10 @@ type (
 		Profile() profile.API
 		// Private 获取私聊消息接口
 		Private() private.API
-		// Session 获取最近联系人接口
-		Session() session.API
 		// Operation 获取运营管理接口
 		Operation() operation.API
+		// RecentContact 获取最近联系人接口
+		RecentContact() recentcontact.API
 		// Callback 获取回调接口
 		Callback() callback.Callback
 	}
@@ -121,14 +121,14 @@ func (i *im) Private() private.API {
 	return private.NewAPI(i.client)
 }
 
-// Session 获取最近联系人接口
-func (i *im) Session() session.API {
-	return session.NewAPI(i.client)
-}
-
 // Operation 获取运营管理接口
 func (i *im) Operation() operation.API {
 	return operation.NewAPI(i.client)
+}
+
+// RecentContact 获取最近联系人接口
+func (i *im) RecentContact() recentcontact.API {
+	return recentcontact.NewAPI(i.client)
 }
 
 // Callback 获取回调接口

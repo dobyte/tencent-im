@@ -5,13 +5,13 @@
  * @Desc: TODO
  */
 
-package session
+package recentcontact
 
 import "github.com/dobyte/tencent-im/internal/types"
 
 // FetchSessionsArg 拉取会话列表（参数）
 type FetchSessionsArg struct {
-	Account                 string // （必填）请求拉取该用户的会话列表
+	UserId                  string // （必填）请求拉取该用户的会话列表
 	TimeStamp               int    // （必填）普通会话的起始时间，第一页填 0
 	StartIndex              int    // （必填）普通会话的起始位置，第一页填 0
 	TopTimeStamp            int    // （必填）置顶会话的起始时间，第一页填 0
@@ -33,7 +33,7 @@ type FetchSessionsRet struct {
 
 // fetchSessionsReq 拉取会话列表（请求）
 type fetchSessionsReq struct {
-	Account       string `json:"From_Account"`  // （必填）请求拉取该用户的会话列表
+	UserId        string `json:"From_Account"`  // （必填）请求拉取该用户的会话列表
 	TimeStamp     int    `json:"TimeStamp"`     // （必填）普通会话的起始时间，第一页填 0
 	StartIndex    int    `json:"StartIndex"`    // （必填）普通会话的起始位置，第一页填 0
 	TopTimeStamp  int    `json:"TopTimeStamp"`  // （必填）置顶会话的起始时间，第一页填 0
@@ -55,7 +55,7 @@ type fetchSessionsResp struct {
 // SessionItem 会话对象
 type SessionItem struct {
 	Type    SessionType `json:"Type"`                 // 会话类型：1 表示 C2C 会话；2 表示 G2C 会话
-	Account string      `json:"To_Account,omitempty"` // C2C 会话才会返回，返回会话方的 UserID
+	UserId  string      `json:"To_Account,omitempty"` // C2C 会话才会返回，返回会话方的 UserID
 	GroupId string      `json:"GroupId,omitempty"`    // G2C 会话才会返回，返回群 ID
 	MsgTime int         `json:"MsgTime"`              // 会话时间
 	TopFlag int         `json:"TopFlag"`              // 置顶标记：0 标识普通会话；1 标识置顶会话
@@ -63,8 +63,8 @@ type SessionItem struct {
 
 // deleteSessionReq 删除单个会话（请求）
 type deleteSessionReq struct {
-	FromAccount string `json:"From_Account"`          // （必填）请求删除该 UserID 的会话
-	Type        int    `json:"type"`                  // （必填）会话类型：1 表示 C2C 会话；2 表示 G2C 会话
-	ToAccount   string `json:"To_Account"`            // （必填）待删除的会话的 UserID
-	ClearRamble int    `json:"ClearRamble,omitempty"` // （选填）是否清理漫游消息：1 表示清理漫游消息；0 表示不清理漫游消息
+	FromUserId  string      `json:"From_Account"`          // （必填）请求删除该 UserID 的会话
+	Type        SessionType `json:"type"`                  // （必填）会话类型：1 表示 C2C 会话；2 表示 G2C 会话
+	ToUserId    string      `json:"To_Account"`            // （必填）待删除的会话的 UserID
+	ClearRamble int         `json:"ClearRamble,omitempty"` // （选填）是否清理漫游消息：1 表示清理漫游消息；0 表示不清理漫游消息
 }

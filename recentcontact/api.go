@@ -5,7 +5,7 @@
  * @Desc: TODO
  */
 
-package session
+package recentcontact
 
 import (
 	"github.com/dobyte/tencent-im/internal/core"
@@ -29,7 +29,7 @@ type API interface {
 	// 删除指定会话，支持同步清理漫游消息。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/62119
-	DeleteSession(fromAccount, toAccount string, SessionType SessionType, isClearRamble ...bool) (err error)
+	DeleteSession(fromUserId, toUserId string, SessionType SessionType, isClearRamble ...bool) (err error)
 }
 
 type api struct {
@@ -46,7 +46,7 @@ func NewAPI(client core.Client) API {
 // https://cloud.tencent.com/document/product/269/62118
 func (a *api) FetchSessions(arg *FetchSessionsArg) (ret *FetchSessionsRet, err error) {
 	req := &fetchSessionsReq{
-		Account:       arg.Account,
+		UserId:        arg.UserId,
 		TimeStamp:     arg.TimeStamp,
 		StartIndex:    arg.StartIndex,
 		TopTimeStamp:  arg.TopTimeStamp,
@@ -54,15 +54,15 @@ func (a *api) FetchSessions(arg *FetchSessionsArg) (ret *FetchSessionsRet, err e
 	}
 
 	if arg.IsAllowTopSession {
-		req.AssistFlags += 1
+		req.AssistFlags += 1 << 0
 	}
 
 	if arg.IsReturnEmptySession {
-		req.AssistFlags += 2
+		req.AssistFlags += 1 << 1
 	}
 
 	if arg.IsAllowTopSessionPaging {
-		req.AssistFlags += 4
+		req.AssistFlags += 1 << 2
 	}
 
 	resp := &fetchSessionsResp{}
@@ -90,11 +90,11 @@ func (a *api) FetchSessions(arg *FetchSessionsArg) (ret *FetchSessionsRet, err e
 // 删除指定会话，支持同步清理漫游消息。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/62119
-func (a *api) DeleteSession(fromAccount, toAccount string, SessionType SessionType, isClearRamble ...bool) (err error) {
+func (a *api) DeleteSession(fromUserId, toUserId string, SessionType SessionType, isClearRamble ...bool) (err error) {
 	req := &deleteSessionReq{
-		FromAccount: fromAccount,
-		ToAccount:   toAccount,
-		Type:        int(SessionType),
+		FromUserId: fromUserId,
+		ToUserId:   toUserId,
+		Type:       SessionType,
 	}
 
 	if len(isClearRamble) > 0 && isClearRamble[0] {

@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	errNotSetUserId    = errors.New("friend userid is not set")
-	errNotSetAddSource = errors.New("friend add source is not set")
+	errNotSetAccount   = errors.New("the friend's account is not set")
+	errNotSetAddSource = errors.New("the friend's add source is not set")
 )
 
 type Friend struct {
@@ -25,9 +25,14 @@ type Friend struct {
 	customAttrs map[string]interface{}
 }
 
-func NewFriend() *Friend {
+func NewFriend(account ...string) *Friend {
 	f := new(Friend)
 	f.customAttrs = make(map[string]interface{})
+
+	if len(account) > 0 {
+		f.SetUserId(account[0])
+	}
+
 	return f
 }
 
@@ -190,7 +195,7 @@ func (f *Friend) GetSNSCustomAttrs() (attrs map[string]interface{}) {
 // checkError 检测参数错误
 func (f *Friend) checkError() error {
 	if f.GetUserId() == "" {
-		return errNotSetUserId
+		return errNotSetAccount
 	}
 
 	if _, exist := f.GetSrcAddSource(); !exist {

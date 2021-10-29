@@ -8,13 +8,16 @@
 package sns
 
 import (
+	"errors"
+	"fmt"
+
 	"github.com/dobyte/tencent-im/internal/core"
 	"github.com/dobyte/tencent-im/internal/enum"
 	"github.com/dobyte/tencent-im/internal/types"
 )
 
 const (
-	serviceSNS             = "sns"
+	service                = "sns"
 	commandAddFriend       = "friend_add"
 	commandImportFriend    = "friend_import"
 	commandUpdateFriend    = "friend_update"
@@ -30,6 +33,16 @@ const (
 	commandAddGroup        = "group_add"
 	commandDeleteGroup     = "group_delete"
 	commandGetGroup        = "group_get"
+
+	batchCheckFriendsLimit    = 100  // 批量校验好友限制
+	batchGetFriendsLimit      = 100  // 批量获取好友限制
+	batchAddBlacklistLimit    = 1000 // 批量添加黑名单限制
+	batchDeleteBlacklistLimit = 1000 // 批量删除黑名单限制
+	batchCheckBlacklistLimit  = 1000 // 批量校验黑名单限制
+	batchAddGroupsLimit       = 100  // 批量添加分组限制
+	batchJoinGroupsLimit      = 1000 // 批量加入群组账号限制
+	batchDeleteGroupsLimit    = 100  // 批量删除分组限制
+	batchGetGroupsLimit       = 100  // 批量获取分组限制
 )
 
 type API interface {
@@ -38,13 +51,13 @@ type API interface {
 	// 添加好友，仅支持添加单个好友
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1643
-	AddFriend(userId string, friend *Friend, isBothAdd bool, isForceAdd bool) (err error)
+	AddFriend(userId string, isBothAdd, isForceAdd bool, friend *Friend) (err error)
 
 	// AddFriends 添加多个好友
 	// 添加好友，支持批量添加好友
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1643
-	AddFriends(userId string, friends []*Friend, isBothAdd bool, isForceAdd bool) (results []Result, err error)
+	AddFriends(userId string, isBothAdd, isForceAdd bool, friends ...*Friend) (results []*Result, err error)
 
 	// ImportFriend 导入单个好友
 	// 本方法拓展于“添加多个好友（ImportFriends）”方法。
@@ -57,7 +70,7 @@ type API interface {
 	// 往同一个用户导入好友时建议采用批量导入的方式，避免并发写导致的写冲突。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/8301
-	ImportFriends(userId string, friends []*Friend) (results []Result, err error)
+	ImportFriends(userId string, friends ...*Friend) (results []*Result, err error)
 
 	// UpdateFriend 更新单个好友
 	// 本方法拓展于“更新多个好友（UpdateFriends）”方法。
@@ -70,19 +83,19 @@ type API interface {
 	// 更新一个用户多个好友时，建议采用批量方式，避免并发写导致的写冲突。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/12525
-	UpdateFriends(userId string, friends []*Friend) (results []Result, err error)
+	UpdateFriends(userId string, friends ...*Friend) (results []*Result, err error)
 
 	// DeleteFriend 删除单个好友
 	// 本方法拓展于“删除多个好友（DeleteFriends）”方法。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1644
-	DeleteFriend(userId string, deleteUserId string, isBothDelete bool) (err error)
+	DeleteFriend(userId string, isBothDelete bool, deletedUserId string) (err error)
 
 	// DeleteFriends 删除多个好友
 	// 删除好友，支持单向删除好友和双向删除好友。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1644
-	DeleteFriends(userId string, deleteUserIds []string, isBothDelete bool) (results []Result, err error)
+	DeleteFriends(userId string, isBothDelete bool, deletedUserIds ...string) (results []*Result, err error)
 
 	// DeleteAllFriends 删除所有好友
 	// 清除指定用户的标配好友数据和自定义好友数据。
@@ -94,27 +107,27 @@ type API interface {
 	// 本方法拓展于“校验多个好友（CheckFriends）”方法。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1646
-	CheckFriend(userId string, checkUserId string, checkType CheckType) (relation string, err error)
+	CheckFriend(userId string, checkType CheckType, checkedUserId string) (relation string, err error)
 
 	// CheckFriends 校验多个好友
 	// 支持批量校验好友关系。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1646
-	CheckFriends(userId string, checkUserIds []string, checkType CheckType) (results []CheckResult, err error)
+	CheckFriends(userId string, checkType CheckType, checkedUserIds ...string) (results []*CheckResult, err error)
 
 	// GetFriend 拉取单个指定好友
 	// 本方法拓展于“拉取多个指定好友（GetFriends）”方法。
 	// 支持拉取指定好友的好友数据和资料数据。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/8609
-	GetFriend(userId string, friendUserId string, tagList []string) (friend *Friend, err error)
+	GetFriend(userId string, tagList []string, friendUserId string) (friend *Friend, err error)
 
 	// GetFriends 拉取多个指定好友
 	// 支持拉取指定好友的好友数据和资料数据。
 	// 建议每次拉取的好友数不超过100，避免因数据量太大导致回包失败。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/8609
-	GetFriends(userId string, friendUserIds []string, tagList []string) (friends []*Friend, err error)
+	GetFriends(userId string, tagList []string, friendUserIds ...string) (friends []*Friend, err error)
 
 	// FetchFriends 拉取好友
 	// 分页拉取全量好友数据。
@@ -128,13 +141,13 @@ type API interface {
 	// 添加黑名单，支持批量添加黑名单。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/3718
-	AddBlacklist(userId string, blackUserIds []string) (results []Result, err error)
+	AddBlacklist(userId string, blackedUserIds ...string) (results []*Result, err error)
 
 	// DeleteBlacklist 删除黑名单
 	// 删除指定黑名单。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/3719
-	DeleteBlacklist(userId string, deleteUserIds []string) (results []Result, err error)
+	DeleteBlacklist(userId string, deletedUserIds ...string) (results []*Result, err error)
 
 	// FetchBlacklist 拉取黑名单
 	// 支持分页拉取所有黑名单。
@@ -145,25 +158,25 @@ type API interface {
 	// CheckBlacklist 校验黑名单
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/3725
-	CheckBlacklist(userId string, checkUserIds []string, checkType BlacklistCheckType) (results []CheckResult, err error)
+	CheckBlacklist(userId string, checkType BlacklistCheckType, checkedUserIds ...string) (results []*CheckResult, err error)
 
 	// AddGroups 添加分组
 	// 添加分组，支持批量添加分组，并将指定好友加入到新增分组中。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/10107
-	AddGroups(userId string, groupNames []string, groupUserIds ...[]string) (currentSequence int, results []Result, err error)
+	AddGroups(userId string, groupNames []string, joinedUserIds ...[]string) (currentSequence int, results []*Result, err error)
 
 	// DeleteGroups 删除分组
 	// 删除指定分组。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/10108
-	DeleteGroups(userId string, groupNames []string) (currentSequence int, err error)
+	DeleteGroups(userId string, groupNames ...string) (currentSequence int, err error)
 
 	// GetGroups 拉取分组
 	// 拉取分组，支持指定分组以及拉取分组下的好友列表。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/54763
-	GetGroups(userId string, lastSequence int, isGetFriends bool, groupName []string) (currentSequence int, results []GroupResult, err error)
+	GetGroups(userId string, lastSequence int, isGetFriends bool, groupNames ...string) (currentSequence int, results []*GroupResult, err error)
 }
 
 type api struct {
@@ -179,10 +192,10 @@ func NewAPI(client core.Client) API {
 // 添加好友，仅支持添加单个好友
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1643
-func (a *api) AddFriend(userId string, friend *Friend, isBothAdd bool, isForceAdd bool) (err error) {
-	var results []Result
+func (a *api) AddFriend(userId string, isBothAdd, isForceAdd bool, friend *Friend) (err error) {
+	var results []*Result
 
-	if results, err = a.AddFriends(userId, []*Friend{friend}, isBothAdd, isForceAdd); err != nil {
+	if results, err = a.AddFriends(userId, isBothAdd, isForceAdd, friend); err != nil {
 		return
 	}
 
@@ -201,44 +214,50 @@ func (a *api) AddFriend(userId string, friend *Friend, isBothAdd bool, isForceAd
 // 添加好友，支持批量添加好友
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1643
-func (a *api) AddFriends(userId string, friends []*Friend, isBothAdd bool, isForceAdd bool) (results []Result, err error) {
-	req := addFriendsReq{UserId: userId}
-	resp := &addFriendsResp{}
+func (a *api) AddFriends(userId string, isBothAdd, isForceAdd bool, friends ...*Friend) (results []*Result, err error) {
+	if len(friends) == 0 {
+		err = errors.New("the friends is not set")
+		return
+	}
+
+	req := &addFriendsReq{UserId: userId, Friends: make([]*addFriendItem, 0, len(friends))}
 
 	for _, friend := range friends {
 		if err = friend.checkError(); err != nil {
 			return
 		}
 
-		info := friendInfo{}
-		info.UserId = friend.GetUserId()
-		info.Remark, _ = friend.GetRemark()
-		info.AddWording, _ = friend.GetAddWording()
-		info.AddSource, _ = friend.GetSrcAddSource()
+		item := new(addFriendItem)
+		item.UserId = friend.GetUserId()
+		item.Remark, _ = friend.GetRemark()
+		item.AddWording, _ = friend.GetAddWording()
+		item.AddSource, _ = friend.GetSrcAddSource()
 		if groups, exist := friend.GetGroup(); exist {
-			info.GroupName = groups[0]
+			item.GroupName = groups[0]
 		}
 
-		req.Friends = append(req.Friends, info)
+		req.Friends = append(req.Friends, item)
 	}
 
 	if isBothAdd {
-		req.AddType = string(AddTypeBoth)
+		req.AddType = AddTypeBoth
 	} else {
-		req.AddType = string(AddTypeSingle)
+		req.AddType = AddTypeSingle
 	}
 
 	if isForceAdd {
-		req.ForceAddFlags = 1
+		req.ForceAddFlags = ForceAddYes
 	} else {
-		req.ForceAddFlags = 0
+		req.ForceAddFlags = ForceAddNo
 	}
 
-	if err = a.client.Post(serviceSNS, commandAddFriend, req, resp); err != nil {
+	resp := &addFriendsResp{}
+
+	if err = a.client.Post(service, commandAddFriend, req, resp); err != nil {
 		return
-	} else {
-		results = resp.Results
 	}
+
+	results = resp.Results
 
 	return
 }
@@ -248,9 +267,9 @@ func (a *api) AddFriends(userId string, friends []*Friend, isBothAdd bool, isFor
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/8301
 func (a *api) ImportFriend(userId string, friend *Friend) (err error) {
-	var results []Result
+	var results []*Result
 
-	if results, err = a.ImportFriends(userId, []*Friend{friend}); err != nil {
+	if results, err = a.ImportFriends(userId, friend); err != nil {
 		return
 	}
 
@@ -270,45 +289,48 @@ func (a *api) ImportFriend(userId string, friend *Friend) (err error) {
 // 往同一个用户导入好友时建议采用批量导入的方式，避免并发写导致的写冲突。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/8301
-func (a *api) ImportFriends(userId string, friends []*Friend) (results []Result, err error) {
-	req := importFriendsReq{UserId: userId}
-	resp := &importFriendsResp{}
+func (a *api) ImportFriends(userId string, friends ...*Friend) (results []*Result, err error) {
+	if len(friends) == 0 {
+		err = errors.New("the friends is not set")
+		return
+	}
+
+	req := &importFriendsReq{UserId: userId, Friends: make([]*importFriendItem, 0, len(friends))}
 
 	for _, friend := range friends {
 		if err = friend.checkError(); err != nil {
 			return
 		}
 
-		info := importFriend{}
-		info.UserId = friend.GetUserId()
-		info.Remark, _ = friend.GetRemark()
-		info.AddWording, _ = friend.GetAddWording()
-		info.AddTime, _ = friend.GetAddTime()
-		info.RemarkTime, _ = friend.GetRemarkTime()
-		info.AddSource, _ = friend.GetSrcAddSource()
-
-		if groups, exist := friend.GetGroup(); exist {
-			info.GroupName = groups
-		}
+		item := new(importFriendItem)
+		item.UserId = friend.GetUserId()
+		item.Remark, _ = friend.GetRemark()
+		item.AddWording, _ = friend.GetAddWording()
+		item.AddTime, _ = friend.GetAddTime()
+		item.RemarkTime, _ = friend.GetRemarkTime()
+		item.AddSource, _ = friend.GetSrcAddSource()
+		item.GroupName, _ = friend.GetGroup()
 
 		if customAttrs := friend.GetSNSCustomAttrs(); len(customAttrs) > 0 {
-			info.CustomData = make([]types.TagPair, 0)
+			item.CustomData = make([]*types.TagPair, 0, len(customAttrs))
 			for k, v := range customAttrs {
-				info.CustomData = append(info.CustomData, types.TagPair{
+				item.CustomData = append(item.CustomData, &types.TagPair{
 					Tag:   k,
 					Value: v,
 				})
 			}
 		}
 
-		req.Friends = append(req.Friends, info)
+		req.Friends = append(req.Friends, item)
 	}
 
-	if err = a.client.Post(serviceSNS, commandImportFriend, req, resp); err != nil {
+	resp := &importFriendsResp{}
+
+	if err = a.client.Post(service, commandImportFriend, req, resp); err != nil {
 		return
-	} else {
-		results = resp.Results
 	}
+
+	results = resp.Results
 
 	return
 }
@@ -318,9 +340,9 @@ func (a *api) ImportFriends(userId string, friends []*Friend) (results []Result,
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/12525
 func (a *api) UpdateFriend(userId string, friend *Friend) (err error) {
-	var results []Result
+	var results []*Result
 
-	if results, err = a.UpdateFriends(userId, []*Friend{friend}); err != nil {
+	if results, err = a.UpdateFriends(userId, friend); err != nil {
 		return
 	}
 
@@ -340,18 +362,23 @@ func (a *api) UpdateFriend(userId string, friend *Friend) (err error) {
 // 更新一个用户多个好友时，建议采用批量方式，避免并发写导致的写冲突。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/12525
-func (a *api) UpdateFriends(userId string, friends []*Friend) (results []Result, err error) {
-	req := updateFriendsReq{UserId: userId}
-	resp := &updateFriendsResp{}
+func (a *api) UpdateFriends(userId string, friends ...*Friend) (results []*Result, err error) {
+	if len(friends) == 0 {
+		err = errors.New("the friends is not set")
+		return
+	}
+
+	req := &updateFriendsReq{UserId: userId, Friends: make([]*updateFriendItem, 0, len(friends))}
 
 	for _, friend := range friends {
-		info := updateFriend{}
-		info.UserId = friend.GetUserId()
+		item := new(updateFriendItem)
+		item.UserId = friend.GetUserId()
+
 		for k, v := range friend.GetSNSAttrs() {
 			switch k {
 			case FriendAttrAddSource, FriendAttrAddTime, FriendAttrRemarkTime, FriendAttrAddWording:
 			default:
-				info.Attrs = append(info.Attrs, types.TagPair{
+				item.Attrs = append(item.Attrs, &types.TagPair{
 					Tag:   k,
 					Value: v,
 				})
@@ -359,20 +386,22 @@ func (a *api) UpdateFriends(userId string, friends []*Friend) (results []Result,
 		}
 
 		for k, v := range friend.GetSNSCustomAttrs() {
-			info.Attrs = append(info.Attrs, types.TagPair{
+			item.Attrs = append(item.Attrs, &types.TagPair{
 				Tag:   k,
 				Value: v,
 			})
 		}
 
-		req.Friends = append(req.Friends, info)
+		req.Friends = append(req.Friends, item)
 	}
 
-	if err = a.client.Post(serviceSNS, commandUpdateFriend, req, resp); err != nil {
+	resp := &updateFriendsResp{}
+
+	if err = a.client.Post(service, commandUpdateFriend, req, resp); err != nil {
 		return
-	} else {
-		results = resp.Results
 	}
+
+	results = resp.Results
 
 	return
 }
@@ -381,16 +410,16 @@ func (a *api) UpdateFriends(userId string, friends []*Friend) (results []Result,
 // 本方法拓展于“删除多个好友（DeleteFriends）”方法。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1644
-func (a *api) DeleteFriend(userId string, deleteUserId string, isBothDelete bool) (err error) {
-	var results []Result
+func (a *api) DeleteFriend(userId string, isBothDelete bool, deletedUserId string) (err error) {
+	var results []*Result
 
-	if results, err = a.DeleteFriends(userId, []string{deleteUserId}, isBothDelete); err != nil {
+	if results, err = a.DeleteFriends(userId, isBothDelete, deletedUserId); err != nil {
 		return
 	}
 
 	if results != nil && len(results) > 0 {
 		for _, result := range results {
-			if result.UserId == deleteUserId && result.ResultCode != enum.SuccessCode {
+			if result.UserId == deletedUserId && result.ResultCode != enum.SuccessCode {
 				return core.NewError(result.ResultCode, result.ResultInfo)
 			}
 		}
@@ -403,21 +432,21 @@ func (a *api) DeleteFriend(userId string, deleteUserId string, isBothDelete bool
 // 删除好友，支持单向删除好友和双向删除好友。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1644
-func (a *api) DeleteFriends(userId string, deleteUserIds []string, isBothDelete bool) (results []Result, err error) {
-	req := deleteFriendsReq{UserId: userId, DeleteUserIds: deleteUserIds}
+func (a *api) DeleteFriends(userId string, isBothDelete bool, deletedUserIds ...string) (results []*Result, err error) {
+	req := &deleteFriendsReq{UserId: userId, DeletedUserIds: deletedUserIds}
 	resp := &deleteFriendsResp{}
 
 	if isBothDelete {
-		req.DeleteType = string(DeleteTypeBoth)
+		req.DeleteType = DeleteTypeBoth
 	} else {
-		req.DeleteType = string(DeleteTypeSingle)
+		req.DeleteType = DeleteTypeSingle
 	}
 
-	if err = a.client.Post(serviceSNS, commandDeleteFriend, req, resp); err != nil {
+	if err = a.client.Post(service, commandDeleteFriend, req, resp); err != nil {
 		return
-	} else {
-		results = resp.Results
 	}
+
+	results = resp.Results
 
 	return
 }
@@ -427,15 +456,15 @@ func (a *api) DeleteFriends(userId string, deleteUserIds []string, isBothDelete 
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1645
 func (a *api) DeleteAllFriends(userId string, deleteType ...DeleteType) (err error) {
-	req := deleteAllFriendsReq{UserId: userId}
+	req := &deleteAllFriendsReq{UserId: userId}
 
 	if len(deleteType) > 0 {
-		req.DeleteType = string(deleteType[0])
+		req.DeleteType = deleteType[0]
 	} else {
-		req.DeleteType = string(DeleteTypeSingle)
+		req.DeleteType = DeleteTypeSingle
 	}
 
-	if err = a.client.Post(serviceSNS, commandDeleteAllFriend, req, &types.ActionBaseResp{}); err != nil {
+	if err = a.client.Post(service, commandDeleteAllFriend, req, &types.ActionBaseResp{}); err != nil {
 		return
 	}
 
@@ -446,22 +475,23 @@ func (a *api) DeleteAllFriends(userId string, deleteType ...DeleteType) (err err
 // 本方法拓展于“校验多个好友（CheckFriends）”方法。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1646
-func (a *api) CheckFriend(userId string, checkUserId string, checkType CheckType) (relation string, err error) {
-	var results []CheckResult
+func (a *api) CheckFriend(userId string, checkType CheckType, checkedUserId string) (relation string, err error) {
+	var results []*CheckResult
 
-	if results, err = a.CheckFriends(userId, []string{checkUserId}, checkType); err != nil {
+	if results, err = a.CheckFriends(userId, checkType, checkedUserId); err != nil {
 		return
 	}
 
 	if results != nil && len(results) > 0 {
 		for _, result := range results {
-			if result.UserId == checkUserId {
+			if result.UserId == checkedUserId {
 				if result.ResultCode != enum.SuccessCode {
 					err = core.NewError(result.ResultCode, result.ResultInfo)
 					return
-				} else {
-					return result.Relation, nil
 				}
+
+				relation = result.Relation
+				return
 			}
 		}
 	}
@@ -473,15 +503,23 @@ func (a *api) CheckFriend(userId string, checkUserId string, checkType CheckType
 // 支持批量校验好友关系。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1646
-func (a *api) CheckFriends(userId string, checkUserIds []string, checkType CheckType) (results []CheckResult, err error) {
-	req := checkFriendsReq{UserId: userId, CheckUserIds: checkUserIds, CheckType: string(checkType)}
+func (a *api) CheckFriends(userId string, checkType CheckType, checkedUserIds ...string) (results []*CheckResult, err error) {
+	if c := len(checkedUserIds); c == 0 {
+		err = errors.New("the accounts is not set")
+		return
+	} else if c > batchCheckFriendsLimit {
+		err = errors.New(fmt.Sprintf("the number of checked accounts cannot exceed %d", batchCheckFriendsLimit))
+		return
+	}
+
+	req := &checkFriendsReq{UserId: userId, CheckedUserIds: checkedUserIds, CheckType: checkType}
 	resp := &checkFriendsResp{}
 
-	if err = a.client.Post(serviceSNS, commandCheckFriend, req, resp); err != nil {
+	if err = a.client.Post(service, commandCheckFriend, req, resp); err != nil {
 		return
-	} else {
-		results = resp.Results
 	}
+
+	results = resp.Results
 
 	return
 }
@@ -491,14 +529,14 @@ func (a *api) CheckFriends(userId string, checkUserIds []string, checkType Check
 // 支持拉取指定好友的好友数据和资料数据。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/8609
-func (a *api) GetFriend(userId string, friendUserId string, tagList []string) (friend *Friend, err error) {
+func (a *api) GetFriend(userId string, tagList []string, friendUserId string) (friend *Friend, err error) {
 	var friends []*Friend
 
-	if friends, err = a.GetFriends(userId, []string{friendUserId}, tagList); err != nil {
+	if friends, err = a.GetFriends(userId, tagList, friendUserId); err != nil {
 		return
 	}
 
-	if friends != nil && len(friends) > 0 {
+	if len(friends) > 0 {
 		friend = friends[0]
 	}
 
@@ -510,8 +548,16 @@ func (a *api) GetFriend(userId string, friendUserId string, tagList []string) (f
 // 建议每次拉取的好友数不超过100，避免因数据量太大导致回包失败。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/8609
-func (a *api) GetFriends(userId string, friendUserIds []string, tagList []string) (friends []*Friend, err error) {
-	req := getFriendsReq{UserId: userId, FriendUserIds: friendUserIds}
+func (a *api) GetFriends(userId string, tagList []string, friendUserIds ...string) (friends []*Friend, err error) {
+	if c := len(friendUserIds); c == 0 {
+		err = errors.New("the account of friends is not set")
+		return
+	} else if c > batchGetFriendsLimit {
+		err = errors.New(fmt.Sprintf("the number of friend's account cannot exceed %d", batchGetFriendsLimit))
+		return
+	}
+
+	req := &getFriendsReq{UserId: userId, FriendUserIds: friendUserIds}
 	resp := &getFriendsResp{}
 
 	for _, tag := range tagList {
@@ -522,16 +568,14 @@ func (a *api) GetFriends(userId string, friendUserIds []string, tagList []string
 		}
 	}
 
-	if err = a.client.Post(serviceSNS, commandGetFriend, req, resp); err != nil {
+	if err = a.client.Post(service, commandGetFriend, req, resp); err != nil {
 		return
 	}
 
 	friends = make([]*Friend, 0, len(resp.Friends))
 
-	var friend *Friend
 	for _, item := range resp.Friends {
-		friend = NewFriend()
-		friend.SetUserId(item.UserId)
+		friend := NewFriend(item.UserId)
 		friend.SetError(item.ResultCode, item.ResultInfo)
 		for _, v := range item.Profiles {
 			friend.SetAttr(v.Tag, v.Value)
@@ -549,7 +593,7 @@ func (a *api) GetFriends(userId string, friendUserIds []string, tagList []string
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1647
 func (a *api) FetchFriends(userId string, startIndex int, sequence ...int) (ret *FetchFriendsRet, err error) {
-	req := fetchFriendsReq{UserId: userId, StartIndex: startIndex}
+	req := &fetchFriendsReq{UserId: userId, StartIndex: startIndex}
 	resp := &fetchFriendsResp{}
 
 	if len(sequence) > 0 {
@@ -560,29 +604,27 @@ func (a *api) FetchFriends(userId string, startIndex int, sequence ...int) (ret 
 		req.CustomSequence = sequence[1]
 	}
 
-	if err = a.client.Post(serviceSNS, commandFetchFriend, req, resp); err != nil {
+	if err = a.client.Post(service, commandFetchFriend, req, resp); err != nil {
 		return
-	} else {
-		ret = &FetchFriendsRet{
-			StandardSequence: resp.StandardSequence,
-			CustomSequence:   resp.CustomSequence,
-			FriendNum:        resp.FriendNum,
-			NextStartIndex:   resp.NextStartIndex,
-		}
+	}
 
-		if resp.CompleteFlag != 0 {
-			ret.IsOver = true
-		}
+	ret = &FetchFriendsRet{
+		StandardSequence: resp.StandardSequence,
+		CustomSequence:   resp.CustomSequence,
+		FriendNum:        resp.FriendNum,
+		NextStartIndex:   resp.NextStartIndex,
+	}
 
-		var friend *Friend
-		for _, item := range resp.Friends {
-			friend = NewFriend()
-			friend.SetUserId(item.UserId)
-			for _, v := range item.Values {
-				friend.SetAttr(v.Tag, v.Value)
-			}
-			ret.Friends = append(ret.Friends, friend)
+	if resp.CompleteFlag != 0 {
+		ret.IsOver = true
+	}
+
+	for _, item := range resp.Friends {
+		friend := NewFriend(item.UserId)
+		for _, v := range item.Values {
+			friend.SetAttr(v.Tag, v.Value)
 		}
+		ret.Friends = append(ret.Friends, friend)
 	}
 
 	return
@@ -592,15 +634,23 @@ func (a *api) FetchFriends(userId string, startIndex int, sequence ...int) (ret 
 // 添加黑名单，支持批量添加黑名单。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/3718
-func (a *api) AddBlacklist(userId string, blackUserIds []string) (results []Result, err error) {
-	req := addBlacklistReq{UserId: userId, BlackUserIds: blackUserIds}
+func (a *api) AddBlacklist(userId string, blackedUserIds ...string) (results []*Result, err error) {
+	if c := len(blackedUserIds); c == 0 {
+		err = errors.New("the blacked accounts is not set")
+		return
+	} else if c > batchAddBlacklistLimit {
+		err = errors.New(fmt.Sprintf("the number of blacked accounts cannot exceed %d", batchAddBlacklistLimit))
+		return
+	}
+
+	req := &addBlacklistReq{UserId: userId, BlackedUserIds: blackedUserIds}
 	resp := &addBlacklistResp{}
 
-	if err = a.client.Post(serviceSNS, commandAddBlackList, req, resp); err != nil {
+	if err = a.client.Post(service, commandAddBlackList, req, resp); err != nil {
 		return
-	} else {
-		results = resp.Results
 	}
+
+	results = resp.Results
 
 	return
 }
@@ -609,15 +659,23 @@ func (a *api) AddBlacklist(userId string, blackUserIds []string) (results []Resu
 // 删除指定黑名单。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/3719
-func (a *api) DeleteBlacklist(userId string, deleteUserIds []string) (results []Result, err error) {
-	req := deleteBlacklistReq{UserId: userId, DeleteUserIds: deleteUserIds}
+func (a *api) DeleteBlacklist(userId string, deletedUserIds ...string) (results []*Result, err error) {
+	if c := len(deletedUserIds); c == 0 {
+		err = errors.New("the deleted accounts is not set")
+		return
+	} else if c > batchDeleteBlacklistLimit {
+		err = errors.New(fmt.Sprintf("the number of deleted accounts cannot exceed %d", batchDeleteBlacklistLimit))
+		return
+	}
+
+	req := &deleteBlacklistReq{UserId: userId, DeletedUserIds: deletedUserIds}
 	resp := &deleteBlacklistResp{}
 
-	if err = a.client.Post(serviceSNS, commandDeleteBlackList, req, resp); err != nil {
+	if err = a.client.Post(service, commandDeleteBlackList, req, resp); err != nil {
 		return
-	} else {
-		results = resp.Results
 	}
+
+	results = resp.Results
 
 	return
 }
@@ -627,21 +685,21 @@ func (a *api) DeleteBlacklist(userId string, deleteUserIds []string) (results []
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/3722
 func (a *api) FetchBlacklist(userId string, startIndex, maxLimited, lastSequence int) (ret *FetchBlacklistRet, err error) {
-	req := fetchBlacklistReq{UserId: userId, StartIndex: startIndex, MaxLimited: maxLimited, LastSequence: lastSequence}
+	req := &fetchBlacklistReq{UserId: userId, StartIndex: startIndex, MaxLimited: maxLimited, LastSequence: lastSequence}
 	resp := &fetchBlacklistResp{}
 
-	if err = a.client.Post(serviceSNS, commandGetBlackList, req, resp); err != nil {
+	if err = a.client.Post(service, commandGetBlackList, req, resp); err != nil {
 		return
-	} else {
-		ret = &FetchBlacklistRet{
-			NextStartIndex:   resp.StartIndex,
-			StandardSequence: resp.CurrentSequence,
-			Blacklists:       resp.Blacklists,
-		}
+	}
 
-		if resp.StartIndex == 0 {
-			ret.IsOver = true
-		}
+	ret = &FetchBlacklistRet{
+		NextStartIndex:   resp.StartIndex,
+		StandardSequence: resp.CurrentSequence,
+		Blacklists:       resp.Blacklists,
+	}
+
+	if resp.StartIndex == 0 {
+		ret.IsOver = true
 	}
 
 	return
@@ -650,15 +708,23 @@ func (a *api) FetchBlacklist(userId string, startIndex, maxLimited, lastSequence
 // CheckBlacklist 校验黑名单
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/3725
-func (a *api) CheckBlacklist(userId string, checkUserIds []string, checkType BlacklistCheckType) (results []CheckResult, err error) {
-	req := checkBlacklistReq{UserId: userId, CheckUserIds: checkUserIds, CheckType: string(checkType)}
+func (a *api) CheckBlacklist(userId string, checkType BlacklistCheckType, checkedUserIds ...string) (results []*CheckResult, err error) {
+	if c := len(checkedUserIds); c == 0 {
+		err = errors.New("the checked accounts is not set")
+		return
+	} else if c > batchCheckBlacklistLimit {
+		err = errors.New(fmt.Sprintf("the number of checked accounts cannot exceed %d", batchCheckBlacklistLimit))
+		return
+	}
+
+	req := &checkBlacklistReq{UserId: userId, CheckedUserIds: checkedUserIds, CheckType: checkType}
 	resp := &checkBlacklistResp{}
 
-	if err = a.client.Post(serviceSNS, commandCheckBlackList, req, resp); err != nil {
+	if err = a.client.Post(service, commandCheckBlackList, req, resp); err != nil {
 		return
-	} else {
-		results = resp.CheckResults
 	}
+
+	results = resp.Results
 
 	return
 }
@@ -667,20 +733,37 @@ func (a *api) CheckBlacklist(userId string, checkUserIds []string, checkType Bla
 // 添加分组，支持批量添加分组，并将指定好友加入到新增分组中。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/10107
-func (a *api) AddGroups(userId string, groupNames []string, groupUserIds ...[]string) (currentSequence int, results []Result, err error) {
-	req := addGroupsReq{UserId: userId, GroupNames: groupNames}
+func (a *api) AddGroups(userId string, groupNames []string, joinedUserIds ...[]string) (currentSequence int, results []*Result, err error) {
+	if c := len(groupNames); c == 0 {
+		err = errors.New("the added groups is not set")
+		return
+	} else if c > batchAddGroupsLimit {
+		err = errors.New(fmt.Sprintf("the number of added groups cannot exceed %d", batchAddGroupsLimit))
+		return
+	}
+
+	req := &addGroupsReq{UserId: userId, GroupNames: groupNames}
+
+	if len(joinedUserIds) > 0 {
+		if c := len(joinedUserIds[0]); c == 0 {
+			err = errors.New("the added groups is not set")
+			return
+		} else if c > batchJoinGroupsLimit {
+			err = errors.New(fmt.Sprintf("the number of accounts joining the group cannot exceed %d", batchJoinGroupsLimit))
+			return
+		}
+
+		req.JoinedUserIds = joinedUserIds[0]
+	}
+
 	resp := &addGroupsResp{}
 
-	if len(groupUserIds) > 0 {
-		req.GroupUserIds = groupUserIds[0]
+	if err = a.client.Post(service, commandAddGroup, req, resp); err != nil {
+		return
 	}
 
-	if err = a.client.Post(serviceSNS, commandAddGroup, req, resp); err != nil {
-		return
-	} else {
-		currentSequence = resp.CurrentSequence
-		results = resp.Results
-	}
+	currentSequence = resp.CurrentSequence
+	results = resp.Results
 
 	return
 }
@@ -689,15 +772,23 @@ func (a *api) AddGroups(userId string, groupNames []string, groupUserIds ...[]st
 // 删除指定分组。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/10108
-func (a *api) DeleteGroups(userId string, groupNames []string) (currentSequence int, err error) {
-	req := deleteGroupsReq{UserId: userId, GroupNames: groupNames}
+func (a *api) DeleteGroups(userId string, groupNames ...string) (currentSequence int, err error) {
+	if c := len(groupNames); c == 0 {
+		err = errors.New("the deleted groups is not set")
+		return
+	} else if c > batchDeleteGroupsLimit {
+		err = errors.New(fmt.Sprintf("the number of deleted groups cannot exceed %d", batchDeleteGroupsLimit))
+		return
+	}
+
+	req := &deleteGroupsReq{UserId: userId, GroupNames: groupNames}
 	resp := &deleteGroupsResp{}
 
-	if err = a.client.Post(serviceSNS, commandDeleteGroup, req, resp); err != nil {
+	if err = a.client.Post(service, commandDeleteGroup, req, resp); err != nil {
 		return
-	} else {
-		currentSequence = resp.CurrentSequence
 	}
+
+	currentSequence = resp.CurrentSequence
 
 	return
 }
@@ -706,22 +797,30 @@ func (a *api) DeleteGroups(userId string, groupNames []string) (currentSequence 
 // 拉取分组，支持指定分组以及拉取分组下的好友列表。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/54763
-func (a *api) GetGroups(userId string, lastSequence int, isGetFriends bool, groupName []string) (currentSequence int, results []GroupResult, err error) {
-	req := getGroupsReq{UserId: userId, LastSequence: lastSequence, GroupName: groupName}
+func (a *api) GetGroups(userId string, lastSequence int, isGetFriends bool, groupNames ...string) (currentSequence int, results []*GroupResult, err error) {
+	if c := len(groupNames); c == 0 {
+		err = errors.New("the gotten groups is not set")
+		return
+	} else if c > batchGetGroupsLimit {
+		err = errors.New(fmt.Sprintf("the number of gotten groups cannot exceed %d", batchGetGroupsLimit))
+		return
+	}
+
+	req := &getGroupsReq{UserId: userId, LastSequence: lastSequence, GroupNames: groupNames}
 	resp := &getGroupsResp{}
 
 	if isGetFriends {
-		req.NeedFriend = "Need_Friend_Type_Yes"
+		req.NeedFriend = NeedFriendYes
 	} else {
-		req.NeedFriend = "Need_Friend_Type_No"
+		req.NeedFriend = NeedFriendNo
 	}
 
-	if err = a.client.Post(serviceSNS, commandGetGroup, req, resp); err != nil {
+	if err = a.client.Post(service, commandGetGroup, req, resp); err != nil {
 		return
-	} else {
-		currentSequence = resp.CurrentSequence
-		results = resp.Results
 	}
+
+	currentSequence = resp.CurrentSequence
+	results = resp.Results
 
 	return
 }

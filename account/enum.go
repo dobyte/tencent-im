@@ -7,10 +7,10 @@
 
 package account
 
-// ImportedStatus 导入状态
-type ImportedStatus string
+// ImportedStatusType 导入状态
+type ImportedStatusType string
 
 const (
-	ImportedStatusNo  ImportedStatus = "NotImported" // 未导入
-	ImportedStatusYes ImportedStatus = "Imported"    // 已导入
+	ImportedStatusNo  ImportedStatusType = "NotImported" // 未导入
+	ImportedStatusYes ImportedStatusType = "Imported"    // 已导入
 )

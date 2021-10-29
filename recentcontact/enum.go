@@ -5,7 +5,7 @@
  * @Desc: TODO
  */
 
-package session
+package recentcontact
 
 // SessionType 会话类型
 type SessionType int
