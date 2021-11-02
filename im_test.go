@@ -352,7 +352,7 @@ func TestIm_Profile_GetProfile(t *testing.T) {
 
 // 拉取运营数据
 func TestIm_Operation_GetOperationData(t *testing.T) {
-	data, err := NewIM().Operation().GetOperationData([]string{})
+	data, err := NewIM().Operation().GetOperationData()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -362,7 +362,7 @@ func TestIm_Operation_GetOperationData(t *testing.T) {
 
 // 拉取运营数据
 func TestIm_Operation_GetHistoryData(t *testing.T) {
-	files, err := NewIM().Operation().GetHistoryData(operation.ChatTypePrivate, time.Date(2021, time.August, 22, 14, 0, 0, 0, time.Local))
+	files, err := NewIM().Operation().GetHistoryData(operation.ChatTypeC2C, time.Date(2021, time.August, 22, 14, 0, 0, 0, time.Local))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -867,7 +867,7 @@ func TestIm_Private_FetchMessages(t *testing.T) {
 		err error
 		p   = NewIM().Private()
 		ret *private.FetchMessagesRet
-		arg = private.FetchMessagesArg{
+		arg = &private.FetchMessagesArg{
 			FromUserId: "test1",
 			ToUserId:   "assistant",
 			MaxLimited: 5,
@@ -899,7 +899,7 @@ func TestIm_Private_FetchMessages(t *testing.T) {
 
 // 分页拉取所有消息
 func TestIm_Private_PullMessages(t *testing.T) {
-	err := NewIM().Private().PullMessages(private.PullMessagesArg{
+	err := NewIM().Private().PullMessages(&private.PullMessagesArg{
 		FromUserId: "test1",
 		ToUserId:   "assistant",
 		MaxLimited: 5,
@@ -942,17 +942,14 @@ func TestIm_Private_SetMessageRead(t *testing.T) {
 
 // 获取未读消息数
 func TestIm_Private_GetUnreadMessageNum(t *testing.T) {
-	ret, err := NewIM().Private().GetUnreadMessageNum("assistant", []string{
-		"test1",
-		"test2",
-	})
+	ret, err := NewIM().Private().GetUnreadMessageNum("assistant", "test1", "test2")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	t.Log(ret.Total)
-	t.Log(ret.UnreadList)
-	t.Log(ret.ErrorList)
+	t.Log(ret.Results)
+	t.Log(ret.Errors)
 }
 
 // 创建群组

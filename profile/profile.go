@@ -8,17 +8,17 @@
 package profile
 
 import (
-    "github.com/dobyte/tencent-im/internal/entity"
+	"github.com/dobyte/tencent-im/internal/entity"
 )
 
 type Profile struct {
-    entity.User
+	entity.User
 }
 
 func NewProfile(userId ...string) *Profile {
-    p := &Profile{}
-    if len(userId) > 0 {
-        p.SetUserId(userId[0])
-    }
-    return p
+	p := &Profile{}
+	if len(userId) > 0 {
+		p.SetUserId(userId[0])
+	}
+	return p
 }
