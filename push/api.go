@@ -8,11 +8,11 @@
 package push
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
 	"github.com/dobyte/tencent-im/internal/core"
+	"github.com/dobyte/tencent-im/internal/enum"
 	"github.com/dobyte/tencent-im/internal/types"
 )
 
@@ -158,10 +158,10 @@ func (a *api) PushMessage(message *Message) (taskId string, err error) {
 // https://cloud.tencent.com/document/product/269/45935
 func (a *api) SetAttrNames(attrNames map[int]string) (err error) {
 	if c := len(attrNames); c == 0 {
-		err = errors.New("the attribute names is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the attribute names is not set")
 		return
 	} else if c > batchSetAttrNamesLimit {
-		err = errors.New(fmt.Sprintf("the number of attribute names to be set cannot exceed %d", batchSetAttrNamesLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of attribute names to be set cannot exceed %d", batchSetAttrNamesLimit))
 		return
 	}
 
@@ -208,10 +208,10 @@ func (a *api) GetAttrNames() (attrNames map[int]string, err error) {
 // https://cloud.tencent.com/document/product/269/45937
 func (a *api) GetUserAttrs(userIds ...string) (attrs map[string]map[string]interface{}, err error) {
 	if c := len(userIds); c == 0 {
-		err = errors.New("the accounts is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the accounts is not set")
 		return
 	} else if c > batchGetUserAttrsLimit {
-		err = errors.New(fmt.Sprintf("the number of accounts being queried cannot exceed %d", batchGetUserAttrsLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of accounts being queried cannot exceed %d", batchGetUserAttrsLimit))
 		return
 	}
 
@@ -236,10 +236,10 @@ func (a *api) GetUserAttrs(userIds ...string) (attrs map[string]map[string]inter
 // https://cloud.tencent.com/document/product/269/45938
 func (a *api) SetUserAttrs(attrs map[string]map[string]interface{}) (err error) {
 	if c := len(attrs); c == 0 {
-		err = errors.New("the attributes is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the attributes is not set")
 		return
 	} else if c > batchSetUserAttrsLimit {
-		err = errors.New(fmt.Sprintf("the number of attributes to be set cannot exceed %d", batchSetUserAttrsLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of attributes to be set cannot exceed %d", batchSetUserAttrsLimit))
 		return
 	}
 
@@ -264,10 +264,10 @@ func (a *api) SetUserAttrs(attrs map[string]map[string]interface{}) (err error) 
 // https://cloud.tencent.com/document/product/269/45939
 func (a *api) DeleteUserAttrs(attrs map[string][]string) (err error) {
 	if c := len(attrs); c == 0 {
-		err = errors.New("the attributes is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the attributes is not set")
 		return
 	} else if c > batchDeleteUserAttrsLimit {
-		err = errors.New(fmt.Sprintf("the number of attributes to be delete cannot exceed %d", batchDeleteUserAttrsLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of attributes to be delete cannot exceed %d", batchDeleteUserAttrsLimit))
 		return
 	}
 
@@ -292,10 +292,10 @@ func (a *api) DeleteUserAttrs(attrs map[string][]string) (err error) {
 // https://cloud.tencent.com/document/product/269/45940
 func (a *api) GetUserTags(userIds ...string) (tags map[string][]string, err error) {
 	if c := len(userIds); c == 0 {
-		err = errors.New("the accounts is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the accounts is not set")
 		return
 	} else if c > batchGetUserTagsLimit {
-		err = errors.New(fmt.Sprintf("the number of tags being queried cannot exceed %d", batchGetUserTagsLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of tags being queried cannot exceed %d", batchGetUserTagsLimit))
 		return
 	}
 
@@ -325,10 +325,10 @@ func (a *api) GetUserTags(userIds ...string) (tags map[string][]string, err erro
 // https://cloud.tencent.com/document/product/269/45941
 func (a *api) AddUserTags(tags map[string][]string) (err error) {
 	if c := len(tags); c == 0 {
-		err = errors.New("the tags of user is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the tags of user is not set")
 		return
 	} else if c > batchAddUserTagsLimit {
-		err = errors.New(fmt.Sprintf("the number of tags to be add cannot exceed %d", batchAddUserTagsLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of tags to be add cannot exceed %d", batchAddUserTagsLimit))
 		return
 	}
 
@@ -353,10 +353,10 @@ func (a *api) AddUserTags(tags map[string][]string) (err error) {
 // https://cloud.tencent.com/document/product/269/45942
 func (a *api) DeleteUserTags(tags map[string][]string) (err error) {
 	if c := len(tags); c == 0 {
-		err = errors.New("the tags of user is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the tags of user is not set")
 		return
 	} else if c > batchDeleteUserTagsLimit {
-		err = errors.New(fmt.Sprintf("the number of tags to be delete cannot exceed %d", batchDeleteUserTagsLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of tags to be delete cannot exceed %d", batchDeleteUserTagsLimit))
 		return
 	}
 
@@ -381,10 +381,10 @@ func (a *api) DeleteUserTags(tags map[string][]string) (err error) {
 // https://cloud.tencent.com/document/product/269/45943
 func (a *api) DeleteUserAllTags(userIds ...string) (err error) {
 	if c := len(userIds); c == 0 {
-		err = errors.New("the accounts is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the accounts is not set")
 		return
 	} else if c > batchDeleteUserAllTagsUserLimit {
-		err = errors.New(fmt.Sprintf("the number of accounts to be delete cannot exceed %d", batchDeleteUserAllTagsUserLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of accounts to be delete cannot exceed %d", batchDeleteUserAllTagsUserLimit))
 		return
 	}
 

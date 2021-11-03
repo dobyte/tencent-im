@@ -8,7 +8,9 @@
 package profile
 
 import (
+	"github.com/dobyte/tencent-im/internal/core"
 	"github.com/dobyte/tencent-im/internal/entity"
+	"github.com/dobyte/tencent-im/internal/enum"
 )
 
 type Profile struct {
@@ -21,4 +23,17 @@ func NewProfile(userId ...string) *Profile {
 		p.SetUserId(userId[0])
 	}
 	return p
+}
+
+// CheckError 检测错误
+func (p *Profile) CheckError() (err error) {
+	if userId := p.GetUserId(); userId == "" {
+		return core.NewError(enum.InvalidParamsCode, "the userid is not set")
+	}
+
+	if err = p.GetError(); err != nil {
+		return
+	}
+
+	return
 }

@@ -20,25 +20,25 @@ type (
 	// 拉取App中的所有群组（响应）
 	fetchGroupIdsResp struct {
 		types.ActionBaseResp
-		Next       int           `json:"Next"`
-		TotalCount int           `json:"TotalCount"`
-		Groups     []groupIdItem `json:"GroupIdList"`
+		Next        int           `json:"Next"`
+		TotalCount  int           `json:"TotalCount"`
+		GroupIdList []groupIdItem `json:"GroupIdList"`
 	}
 
 	// FetchGroupIdsRet 拉取App中的所有群组ID返回
 	FetchGroupIdsRet struct {
-		Total  int      // App 当前的群组总数
-		Next   int      // 分页拉取的标志
-		IsOver bool     // 是否已经拉取完毕
-		List   []string // 群组ID列表
+		Total   int      // App 当前的群组总数
+		Next    int      // 分页拉取的标志
+		HasMore bool     // 是否还有更多数据
+		List    []string // 群组ID列表
 	}
 
 	// FetchGroupsRet 拉取APP中的所有群返回
 	FetchGroupsRet struct {
-		Total  int      // App 当前的群组总数
-		Next   int      // 分页拉取的标志
-		IsOver bool     // 是否已经拉取完毕
-		List   []*Group // 群组列表
+		Total   int      // App 当前的群组总数
+		Next    int      // 分页拉取的标志
+		HasMore bool     // 是否还有更多数据
+		List    []*Group // 群组列表
 	}
 
 	// 群ID
@@ -47,24 +47,24 @@ type (
 	}
 
 	// 自定义数据
-	customData struct {
+	customDataItem struct {
 		Key   string      `json:"Key"`
 		Value interface{} `json:"Value"`
 	}
 
 	// 创建群（请求）
 	createGroupReq struct {
-		OwnerUserId     string       `json:"Owner_Account,omitempty"`   // （选填）群主 ID（需是 已导入 的账号）。填写后自动添加到群成员中；如果不填，群没有群主
-		GroupId         string       `json:"GroupId,omitempty"`         // （选填）为了使得群组 ID 更加简单，便于记忆传播，腾讯云支持 App 在通过 REST API 创建群组时 自定义群组 ID
-		Type            string       `json:"GroupType"`                 // （必填）群组形态，包括 Public（陌生人社交群），Private（即 Work，好友工作群），ChatRoom（即 Meeting，会议群），AVChatRoom（直播群）
-		Name            string       `json:"Name"`                      // （必填）群名称，最长30字节，使用 UTF-8 编码，1个汉字占3个字节
-		Introduction    string       `json:"Introduction,omitempty"`    // （选填）群简介，最长240字节，使用 UTF-8 编码，1个汉字占3个字节
-		Notification    string       `json:"Notification,omitempty"`    // （选填）群公告，最长300字节，使用 UTF-8 编码，1个汉字占3个字节
-		FaceUrl         string       `json:"FaceUrl,omitempty"`         // （选填）群头像 URL，最长100字节
-		MaxMemberNum    uint         `json:"MaxMemberCount,omitempty"`  // （选填）最大群成员数量，缺省时的默认值：付费套餐包上限，例如体验版是20，如果升级套餐包，需按照修改群基础资料修改这个字段
-		ApplyJoinOption string       `json:"ApplyJoinOption,omitempty"` // （选填）申请加群处理方式。包含 FreeAccess（自由加入），NeedPermission（需要验证），DisableApply（禁止加群），不填默认为 NeedPermission（需要验证） 仅当创建支持申请加群的 群组 时，该字段有效
-		AppDefinedData  []customData `json:"AppDefinedData,omitempty"`  // （选填）群组维度的自定义字段，默认情况是没有的，可以通过 即时通信 IM 控制台 进行配置，详情请参阅 自定义字段
-		MemberList      []memberInfo `json:"MemberList,omitempty"`      // （选填）初始群成员列表，最多100个；成员信息字段详情请参阅 群成员资料
+		OwnerUserId     string            `json:"Owner_Account,omitempty"`   // （选填）群主 ID（需是 已导入 的账号）。填写后自动添加到群成员中；如果不填，群没有群主
+		GroupId         string            `json:"GroupId,omitempty"`         // （选填）为了使得群组 ID 更加简单，便于记忆传播，腾讯云支持 App 在通过 REST API 创建群组时 自定义群组 ID
+		Type            string            `json:"Type"`                      // （必填）群组形态，包括 Public（陌生人社交群），Private（即 Work，好友工作群），ChatRoom（即 Meeting，会议群），AVChatRoom（直播群）
+		Name            string            `json:"Name"`                      // （必填）群名称，最长30字节，使用 UTF-8 编码，1个汉字占3个字节
+		Introduction    string            `json:"Introduction,omitempty"`    // （选填）群简介，最长240字节，使用 UTF-8 编码，1个汉字占3个字节
+		Notification    string            `json:"Notification,omitempty"`    // （选填）群公告，最长300字节，使用 UTF-8 编码，1个汉字占3个字节
+		FaceUrl         string            `json:"FaceUrl,omitempty"`         // （选填）群头像 URL，最长100字节
+		MaxMemberNum    uint              `json:"MaxMemberCount,omitempty"`  // （选填）最大群成员数量，缺省时的默认值：付费套餐包上限，例如体验版是20，如果升级套餐包，需按照修改群基础资料修改这个字段
+		ApplyJoinOption string            `json:"ApplyJoinOption,omitempty"` // （选填）申请加群处理方式。包含 FreeAccess（自由加入），NeedPermission（需要验证），DisableApply（禁止加群），不填默认为 NeedPermission（需要验证） 仅当创建支持申请加群的 群组 时，该字段有效
+		AppDefinedData  []*customDataItem `json:"AppDefinedData,omitempty"`  // （选填）群组维度的自定义字段，默认情况是没有的，可以通过 即时通信 IM 控制台 进行配置，详情请参阅 自定义字段
+		MemberList      []*memberItem     `json:"MemberList,omitempty"`      // （选填）初始群成员列表，最多100个；成员信息字段详情请参阅 群成员资料
 	}
 
 	// 创建群（响应）
@@ -74,17 +74,17 @@ type (
 	}
 
 	// 群成员信息
-	memberInfo struct {
-		UserId               string       `json:"Member_Account"`            // 群成员ID
-		Role                 string       `json:"Role,omitempty"`            // 群内身份
-		JoinTime             int64        `json:"JoinTime,omitempty"`        // 入群时间
-		MsgSeq               int          `json:"MsgSeq,omitempty"`          // 该成员当前已读消息Seq
-		MsgFlag              string       `json:"MsgFlag,omitempty"`         // 消息接收选项
-		LastSendMsgTime      int64        `json:"LastSendMsgTime,omitempty"` // 最后发送消息的时间
-		NameCard             string       `json:"NameCard,omitempty"`        // 群名片
-		ShutUpUntil          int64        `json:"ShutUpUntil"`               // 禁言截至时间
-		UnreadMsgNum         int          `json:"UnreadMsgNum,omitempty"`    // 待导入群成员的未读消息计数
-		AppMemberDefinedData []customData `json:"AppMemberDefinedData"`      // 群成员自定义数据
+	memberItem struct {
+		UserId               string            `json:"Member_Account"`                 // 群成员ID
+		Role                 string            `json:"Role,omitempty"`                 // 群内身份
+		JoinTime             int64             `json:"JoinTime,omitempty"`             // 入群时间
+		MsgSeq               int               `json:"MsgSeq,omitempty"`               // 该成员当前已读消息Seq
+		MsgFlag              string            `json:"MsgFlag,omitempty"`              // 消息接收选项
+		LastSendMsgTime      int64             `json:"LastSendMsgTime,omitempty"`      // 最后发送消息的时间
+		NameCard             string            `json:"NameCard,omitempty"`             // 群名片
+		ShutUpUntil          int64             `json:"ShutUpUntil"`                    // 禁言截至时间
+		UnreadMsgNum         int               `json:"UnreadMsgNum,omitempty"`         // 待导入群成员的未读消息计数
+		AppMemberDefinedData []*customDataItem `json:"AppMemberDefinedData,omitempty"` // 群成员自定义数据
 	}
 
 	// 解散群（请求）
@@ -110,31 +110,31 @@ type (
 	// 获取群详细资料（响应）
 	getGroupsResp struct {
 		types.ActionBaseResp
-		GroupInfos []groupInfo `json:"GroupInfo"`
+		GroupInfos []*groupInfo `json:"GroupInfo"`
 	}
 
 	groupInfo struct {
-		GroupId         string       `json:"GroupId"`
-		ErrorCode       int          `json:"ErrorCode"`
-		ErrorInfo       string       `json:"ErrorInfo"`
-		Type            string       `json:"GroupType"`
-		Name            string       `json:"Name"`
-		AppId           int          `json:"Appid"`
-		Introduction    string       `json:"Introduction"`
-		Notification    string       `json:"Notification"`
-		FaceUrl         string       `json:"FaceUrl"`
-		OwnerUserId     string       `json:"Owner_Account"`
-		CreateTime      int64        `json:"CreateTime"`
-		LastInfoTime    int64        `json:"LastInfoTime"`
-		LastMsgTime     int64        `json:"LastMsgTime"`
-		NextMsgSeq      int          `json:"NextMsgSeq"`
-		MemberNum       uint         `json:"MemberNum"`
-		MaxMemberNum    uint         `json:"MaxMemberNum"`
-		ApplyJoinOption string       `json:"ApplyJoinOption"`
-		ShutUpAllMember string       `json:"ShutUpAllMember"`
-		AppDefinedData  []customData `json:"AppDefinedData"`
-		MemberList      []memberInfo `json:"MemberList"`
-		MemberInfo      *memberInfo  `json:"SelfInfo,omitempty"` // 成员在群中的信息（仅在获取用户所加入的群组接口返回）
+		GroupId         string           `json:"GroupId"`
+		ErrorCode       int              `json:"ErrorCode"`
+		ErrorInfo       string           `json:"ErrorInfo"`
+		Type            string           `json:"GroupType"`
+		Name            string           `json:"Name"`
+		AppId           int              `json:"Appid"`
+		Introduction    string           `json:"Introduction"`
+		Notification    string           `json:"Notification"`
+		FaceUrl         string           `json:"FaceUrl"`
+		OwnerUserId     string           `json:"Owner_Account"`
+		CreateTime      int64            `json:"CreateTime"`
+		LastInfoTime    int64            `json:"LastInfoTime"`
+		LastMsgTime     int64            `json:"LastMsgTime"`
+		NextMsgSeq      int              `json:"NextMsgSeq"`
+		MemberNum       uint             `json:"MemberNum"`
+		MaxMemberNum    uint             `json:"MaxMemberNum"`
+		ApplyJoinOption string           `json:"ApplyJoinOption"`
+		ShutUpAllMember string           `json:"ShutUpAllMember"`
+		AppDefinedData  []customDataItem `json:"AppDefinedData"`
+		MemberList      []memberItem     `json:"MemberList"`
+		MemberInfo      *memberItem      `json:"SelfInfo,omitempty"` // 成员在群中的信息（仅在获取用户所加入的群组接口返回）
 	}
 
 	// 获取群成员详细资料（请求）
@@ -151,7 +151,7 @@ type (
 	fetchMembersResp struct {
 		types.ActionBaseResp
 		MemberNum  int          `json:"MemberNum"`
-		MemberList []memberInfo `json:"MemberList"`
+		MemberList []memberItem `json:"MemberList"`
 	}
 
 	// FetchMembersRet 拉取群成员结果
@@ -163,15 +163,15 @@ type (
 
 	// 修改群基础资料（请求）
 	updateGroupReq struct {
-		GroupId         string       `json:"GroupId"`
-		Name            string       `json:"Name,omitempty"`
-		Introduction    string       `json:"Introduction,omitempty"`
-		Notification    string       `json:"Notification,omitempty"`
-		FaceUrl         string       `json:"FaceUrl,omitempty"`
-		MaxMemberNum    uint         `json:"MaxMemberNum,omitempty"`
-		ApplyJoinOption string       `json:"ApplyJoinOption,omitempty"`
-		ShutUpAllMember string       `json:"ShutUpAllMember,omitempty"`
-		AppDefinedData  []customData `json:"AppDefinedData,omitempty"`
+		GroupId         string           `json:"GroupId"`
+		Name            string           `json:"Name,omitempty"`
+		Introduction    string           `json:"Introduction,omitempty"`
+		Notification    string           `json:"Notification,omitempty"`
+		FaceUrl         string           `json:"FaceUrl,omitempty"`
+		MaxMemberNum    uint             `json:"MaxMemberNum,omitempty"`
+		ApplyJoinOption string           `json:"ApplyJoinOption,omitempty"`
+		ShutUpAllMember string           `json:"ShutUpAllMember,omitempty"`
+		AppDefinedData  []customDataItem `json:"AppDefinedData,omitempty"`
 	}
 
 	// 添加群成员（请求）
@@ -207,13 +207,13 @@ type (
 
 	// 修改群成员资料（请求）
 	updateMemberReq struct {
-		GroupId              string       `json:"GroupId"`                        // （必填）群ID
-		UserId               string       `json:"Member_Account"`                 // （必填）群成员ID
-		Role                 string       `json:"Role,omitempty"`                 // （选填）群内身份
-		NameCard             string       `json:"NameCard,omitempty"`             // （选填）群名片
-		MsgFlag              string       `json:"MsgFlag,omitempty"`              // （选填）消息接收选项
-		ShutUpUntil          *int64       `json:"ShutUpUntil,omitempty"`          // （选填）禁言截至时间
-		AppMemberDefinedData []customData `json:"AppMemberDefinedData,omitempty"` // （选填）群成员自定义数据
+		GroupId              string           `json:"GroupId"`                        // （必填）群ID
+		UserId               string           `json:"Member_Account"`                 // （必填）群成员ID
+		Role                 string           `json:"Role,omitempty"`                 // （选填）群内身份
+		NameCard             string           `json:"NameCard,omitempty"`             // （选填）群名片
+		MsgFlag              string           `json:"MsgFlag,omitempty"`              // （选填）消息接收选项
+		ShutUpUntil          *int64           `json:"ShutUpUntil,omitempty"`          // （选填）禁言截至时间
+		AppMemberDefinedData []customDataItem `json:"AppMemberDefinedData,omitempty"` // （选填）群成员自定义数据
 	}
 
 	// FetchMemberGroupsArg 拉取用户所加入的群组（参数）
@@ -362,17 +362,17 @@ type (
 
 	// 导入群基础资料（请求）
 	importGroupReq struct {
-		OwnerUserId     string       `json:"Owner_Account,omitempty"`   // （选填）群主 ID（需是 已导入 的账号）。填写后自动添加到群成员中；如果不填，群没有群主
-		GroupId         string       `json:"GroupId,omitempty"`         // （选填）为了使得群组 ID 更加简单，便于记忆传播，腾讯云支持 App 在通过 REST API 创建群组时 自定义群组 ID
-		Type            string       `json:"GroupType"`                 // （必填）群组形态，包括 Public（陌生人社交群），Private（即 Work，好友工作群），ChatRoom（即 Meeting，会议群），AVChatRoom（直播群）
-		Name            string       `json:"Name"`                      // （必填）群名称，最长30字节，使用 UTF-8 编码，1个汉字占3个字节
-		Introduction    string       `json:"Introduction,omitempty"`    // （选填）群简介，最长240字节，使用 UTF-8 编码，1个汉字占3个字节
-		Notification    string       `json:"Notification,omitempty"`    // （选填）群公告，最长300字节，使用 UTF-8 编码，1个汉字占3个字节
-		FaceUrl         string       `json:"FaceUrl,omitempty"`         // （选填）群头像 URL，最长100字节
-		MaxMemberNum    uint         `json:"MaxMemberCount,omitempty"`  // （选填）最大群成员数量，缺省时的默认值：付费套餐包上限，例如体验版是20，如果升级套餐包，需按照修改群基础资料修改这个字段
-		ApplyJoinOption string       `json:"ApplyJoinOption,omitempty"` // （选填）申请加群处理方式。包含 FreeAccess（自由加入），NeedPermission（需要验证），DisableApply（禁止加群），不填默认为 NeedPermission（需要验证） 仅当创建支持申请加群的 群组 时，该字段有效
-		AppDefinedData  []customData `json:"AppDefinedData,omitempty"`  // （选填）群组维度的自定义字段，默认情况是没有的，可以通过 即时通信 IM 控制台 进行配置，详情请参阅 自定义字段
-		CreateTime      int64        `json:"CreateTime"`                // （选填）群组的创建时间
+		OwnerUserId     string           `json:"Owner_Account,omitempty"`   // （选填）群主 ID（需是 已导入 的账号）。填写后自动添加到群成员中；如果不填，群没有群主
+		GroupId         string           `json:"GroupId,omitempty"`         // （选填）为了使得群组 ID 更加简单，便于记忆传播，腾讯云支持 App 在通过 REST API 创建群组时 自定义群组 ID
+		Type            string           `json:"GroupType"`                 // （必填）群组形态，包括 Public（陌生人社交群），Private（即 Work，好友工作群），ChatRoom（即 Meeting，会议群），AVChatRoom（直播群）
+		Name            string           `json:"Name"`                      // （必填）群名称，最长30字节，使用 UTF-8 编码，1个汉字占3个字节
+		Introduction    string           `json:"Introduction,omitempty"`    // （选填）群简介，最长240字节，使用 UTF-8 编码，1个汉字占3个字节
+		Notification    string           `json:"Notification,omitempty"`    // （选填）群公告，最长300字节，使用 UTF-8 编码，1个汉字占3个字节
+		FaceUrl         string           `json:"FaceUrl,omitempty"`         // （选填）群头像 URL，最长100字节
+		MaxMemberNum    uint             `json:"MaxMemberCount,omitempty"`  // （选填）最大群成员数量，缺省时的默认值：付费套餐包上限，例如体验版是20，如果升级套餐包，需按照修改群基础资料修改这个字段
+		ApplyJoinOption string           `json:"ApplyJoinOption,omitempty"` // （选填）申请加群处理方式。包含 FreeAccess（自由加入），NeedPermission（需要验证），DisableApply（禁止加群），不填默认为 NeedPermission（需要验证） 仅当创建支持申请加群的 群组 时，该字段有效
+		AppDefinedData  []customDataItem `json:"AppDefinedData,omitempty"`  // （选填）群组维度的自定义字段，默认情况是没有的，可以通过 即时通信 IM 控制台 进行配置，详情请参阅 自定义字段
+		CreateTime      int64            `json:"CreateTime"`                // （选填）群组的创建时间
 	}
 
 	// 导入群基础资料（响应）
@@ -382,7 +382,7 @@ type (
 	}
 
 	// 消息信息
-	messageInfo struct {
+	messageItem struct {
 		FromUserId string          `json:"From_Account"`     // （必填）消息来源帐号
 		MsgBody    []types.MsgBody `json:"MsgBody"`          // （必填）消息体
 		SendTime   int64           `json:"SendTime"`         // （必填）消息发送时间
@@ -391,8 +391,8 @@ type (
 
 	// 导入群消息（请求）
 	importMessagesReq struct {
-		GroupId string        `json:"GroupId"` // （必填）要导入消息的群ID
-		MsgList []messageInfo `json:"MsgList"` // （必填）导入的消息列表
+		GroupId  string        `json:"GroupId"` // （必填）要导入消息的群ID
+		Messages []messageItem `json:"MsgList"` // （必填）导入的消息列表
 	}
 
 	// 导入群消息（响应）
@@ -410,8 +410,8 @@ type (
 
 	// 导入群成员（请求）
 	importMembersReq struct {
-		GroupId    string       `json:"GroupId"`    // （必填）操作的群ID
-		MemberList []memberInfo `json:"MemberList"` // （必填）添加的群成员数组
+		GroupId string        `json:"GroupId"`    // （必填）操作的群ID
+		Members []*memberItem `json:"MemberList"` // （必填）添加的群成员数组
 	}
 
 	// 导入群成员（响应）

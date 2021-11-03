@@ -8,7 +8,6 @@
 package sns
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/dobyte/tencent-im/internal/core"
@@ -216,7 +215,7 @@ func (a *api) AddFriend(userId string, isBothAdd, isForceAdd bool, friend *Frien
 // https://cloud.tencent.com/document/product/269/1643
 func (a *api) AddFriends(userId string, isBothAdd, isForceAdd bool, friends ...*Friend) (results []*Result, err error) {
 	if len(friends) == 0 {
-		err = errors.New("the friends is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the friends is not set")
 		return
 	}
 
@@ -291,7 +290,7 @@ func (a *api) ImportFriend(userId string, friend *Friend) (err error) {
 // https://cloud.tencent.com/document/product/269/8301
 func (a *api) ImportFriends(userId string, friends ...*Friend) (results []*Result, err error) {
 	if len(friends) == 0 {
-		err = errors.New("the friends is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the friends is not set")
 		return
 	}
 
@@ -364,7 +363,7 @@ func (a *api) UpdateFriend(userId string, friend *Friend) (err error) {
 // https://cloud.tencent.com/document/product/269/12525
 func (a *api) UpdateFriends(userId string, friends ...*Friend) (results []*Result, err error) {
 	if len(friends) == 0 {
-		err = errors.New("the friends is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the friends is not set")
 		return
 	}
 
@@ -505,10 +504,10 @@ func (a *api) CheckFriend(userId string, checkType CheckType, checkedUserId stri
 // https://cloud.tencent.com/document/product/269/1646
 func (a *api) CheckFriends(userId string, checkType CheckType, checkedUserIds ...string) (results []*CheckResult, err error) {
 	if c := len(checkedUserIds); c == 0 {
-		err = errors.New("the accounts is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the accounts is not set")
 		return
 	} else if c > batchCheckFriendsLimit {
-		err = errors.New(fmt.Sprintf("the number of checked accounts cannot exceed %d", batchCheckFriendsLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of checked accounts cannot exceed %d", batchCheckFriendsLimit))
 		return
 	}
 
@@ -550,10 +549,10 @@ func (a *api) GetFriend(userId string, tagList []string, friendUserId string) (f
 // https://cloud.tencent.com/document/product/269/8609
 func (a *api) GetFriends(userId string, tagList []string, friendUserIds ...string) (friends []*Friend, err error) {
 	if c := len(friendUserIds); c == 0 {
-		err = errors.New("the account of friends is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the account of friends is not set")
 		return
 	} else if c > batchGetFriendsLimit {
-		err = errors.New(fmt.Sprintf("the number of friend's account cannot exceed %d", batchGetFriendsLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of friend's account cannot exceed %d", batchGetFriendsLimit))
 		return
 	}
 
@@ -636,10 +635,10 @@ func (a *api) FetchFriends(userId string, startIndex int, sequence ...int) (ret 
 // https://cloud.tencent.com/document/product/269/3718
 func (a *api) AddBlacklist(userId string, blackedUserIds ...string) (results []*Result, err error) {
 	if c := len(blackedUserIds); c == 0 {
-		err = errors.New("the blacked accounts is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the blacked accounts is not set")
 		return
 	} else if c > batchAddBlacklistLimit {
-		err = errors.New(fmt.Sprintf("the number of blacked accounts cannot exceed %d", batchAddBlacklistLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of blacked accounts cannot exceed %d", batchAddBlacklistLimit))
 		return
 	}
 
@@ -661,10 +660,10 @@ func (a *api) AddBlacklist(userId string, blackedUserIds ...string) (results []*
 // https://cloud.tencent.com/document/product/269/3719
 func (a *api) DeleteBlacklist(userId string, deletedUserIds ...string) (results []*Result, err error) {
 	if c := len(deletedUserIds); c == 0 {
-		err = errors.New("the deleted accounts is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the deleted accounts is not set")
 		return
 	} else if c > batchDeleteBlacklistLimit {
-		err = errors.New(fmt.Sprintf("the number of deleted accounts cannot exceed %d", batchDeleteBlacklistLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of deleted accounts cannot exceed %d", batchDeleteBlacklistLimit))
 		return
 	}
 
@@ -710,10 +709,10 @@ func (a *api) FetchBlacklist(userId string, startIndex, maxLimited, lastSequence
 // https://cloud.tencent.com/document/product/269/3725
 func (a *api) CheckBlacklist(userId string, checkType BlacklistCheckType, checkedUserIds ...string) (results []*CheckResult, err error) {
 	if c := len(checkedUserIds); c == 0 {
-		err = errors.New("the checked accounts is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the checked accounts is not set")
 		return
 	} else if c > batchCheckBlacklistLimit {
-		err = errors.New(fmt.Sprintf("the number of checked accounts cannot exceed %d", batchCheckBlacklistLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of checked accounts cannot exceed %d", batchCheckBlacklistLimit))
 		return
 	}
 
@@ -735,10 +734,10 @@ func (a *api) CheckBlacklist(userId string, checkType BlacklistCheckType, checke
 // https://cloud.tencent.com/document/product/269/10107
 func (a *api) AddGroups(userId string, groupNames []string, joinedUserIds ...[]string) (currentSequence int, results []*Result, err error) {
 	if c := len(groupNames); c == 0 {
-		err = errors.New("the added groups is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the added groups is not set")
 		return
 	} else if c > batchAddGroupsLimit {
-		err = errors.New(fmt.Sprintf("the number of added groups cannot exceed %d", batchAddGroupsLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of added groups cannot exceed %d", batchAddGroupsLimit))
 		return
 	}
 
@@ -746,10 +745,10 @@ func (a *api) AddGroups(userId string, groupNames []string, joinedUserIds ...[]s
 
 	if len(joinedUserIds) > 0 {
 		if c := len(joinedUserIds[0]); c == 0 {
-			err = errors.New("the added groups is not set")
+			err = core.NewError(enum.InvalidParamsCode, "the added groups is not set")
 			return
 		} else if c > batchJoinGroupsLimit {
-			err = errors.New(fmt.Sprintf("the number of accounts joining the group cannot exceed %d", batchJoinGroupsLimit))
+			err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of accounts joining the group cannot exceed %d", batchJoinGroupsLimit))
 			return
 		}
 
@@ -774,10 +773,10 @@ func (a *api) AddGroups(userId string, groupNames []string, joinedUserIds ...[]s
 // https://cloud.tencent.com/document/product/269/10108
 func (a *api) DeleteGroups(userId string, groupNames ...string) (currentSequence int, err error) {
 	if c := len(groupNames); c == 0 {
-		err = errors.New("the deleted groups is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the deleted groups is not set")
 		return
 	} else if c > batchDeleteGroupsLimit {
-		err = errors.New(fmt.Sprintf("the number of deleted groups cannot exceed %d", batchDeleteGroupsLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of deleted groups cannot exceed %d", batchDeleteGroupsLimit))
 		return
 	}
 
@@ -799,10 +798,10 @@ func (a *api) DeleteGroups(userId string, groupNames ...string) (currentSequence
 // https://cloud.tencent.com/document/product/269/54763
 func (a *api) GetGroups(userId string, lastSequence int, isGetFriends bool, groupNames ...string) (currentSequence int, results []*GroupResult, err error) {
 	if c := len(groupNames); c == 0 {
-		err = errors.New("the gotten groups is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the gotten groups is not set")
 		return
 	} else if c > batchGetGroupsLimit {
-		err = errors.New(fmt.Sprintf("the number of gotten groups cannot exceed %d", batchGetGroupsLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of gotten groups cannot exceed %d", batchGetGroupsLimit))
 		return
 	}
 

@@ -249,10 +249,10 @@ func (a *api) FetchGroupIds(limit int, next int, groupType ...GroupType) (ret *F
 	ret = &FetchGroupIdsRet{}
 	ret.Next = resp.Next
 	ret.Total = resp.TotalCount
-	ret.IsOver = ret.Next == 0
-	ret.List = make([]string, 0, len(resp.Groups))
+	ret.HasMore = ret.Next != 0
+	ret.List = make([]string, 0, len(resp.GroupIdList))
 
-	for _, item := range resp.Groups {
+	for _, item := range resp.GroupIdList {
 		ret.List = append(ret.List, item.GroupId)
 	}
 
@@ -295,10 +295,10 @@ func (a *api) FetchGroups(limit int, next int, groupTypeAndFilter ...interface{}
 		}
 
 		ret = &FetchGroupsRet{
-			Total:  resp.Total,
-			Next:   resp.Next,
-			IsOver: resp.IsOver,
-			List:   groups,
+			Total:   resp.Total,
+			Next:    resp.Next,
+			HasMore: resp.HasMore,
+			List:    groups,
 		}
 	}
 
@@ -314,7 +314,7 @@ func (a *api) CreateGroup(group *Group) (groupId string, err error) {
 		return
 	}
 
-	req := createGroupReq{}
+	req := &createGroupReq{}
 	req.GroupId = group.id
 	req.OwnerUserId = group.owner
 	req.Type = group.types
@@ -326,9 +326,9 @@ func (a *api) CreateGroup(group *Group) (groupId string, err error) {
 	req.ApplyJoinOption = group.applyJoinOption
 
 	if data := group.GetAllCustomData(); data != nil {
-		req.AppDefinedData = make([]customData, 0, len(data))
+		req.AppDefinedData = make([]*customDataItem, 0, len(data))
 		for key, val := range data {
-			req.AppDefinedData = append(req.AppDefinedData, customData{
+			req.AppDefinedData = append(req.AppDefinedData, &customDataItem{
 				Key:   key,
 				Value: val,
 			})
@@ -336,18 +336,30 @@ func (a *api) CreateGroup(group *Group) (groupId string, err error) {
 	}
 
 	if len(group.members) > 0 {
-		req.MemberList = make([]memberInfo, 0, len(group.members))
+		req.MemberList = make([]*memberItem, 0, len(group.members))
+
+		var item *memberItem
 		for _, member := range group.members {
 			if err = member.checkError(); err != nil {
 				return
 			}
 
-			req.MemberList = append(req.MemberList, memberInfo{
-				UserId:   member.userId,
-				Role:     member.role,
-				JoinTime: member.joinTime,
-				NameCard: member.nameCard,
-			})
+			item = &memberItem{
+				UserId:               member.userId,
+				Role:                 member.role,
+				JoinTime:             member.joinTime,
+				NameCard:             member.nameCard,
+				AppMemberDefinedData: make([]*customDataItem, 0, len(member.GetAllCustomData())),
+			}
+
+			for k, v := range member.GetAllCustomData() {
+				item.AppMemberDefinedData = append(item.AppMemberDefinedData, &customDataItem{
+					Key:   k,
+					Value: v,
+				})
+			}
+
+			req.MemberList = append(req.MemberList, item)
 		}
 	}
 
@@ -388,18 +400,18 @@ func (a *api) GetGroup(groupId string, filter ...*Filter) (group *Group, err err
 // App 管理员可以根据群组 ID 获取群组的详细信息。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1616
-func (a *api) GetGroups(groupIds []string, filter ...*Filter) (groups []*Group, err error) {
+func (a *api) GetGroups(groupIds []string, filters ...*Filter) (groups []*Group, err error) {
 	if len(groupIds) > 0 {
-		req := getGroupsReq{GroupIds: groupIds}
+		req := &getGroupsReq{GroupIds: groupIds}
 		resp := &getGroupsResp{}
 
-		if len(filter) > 0 {
-			if filter[0] != nil {
+		if len(filters) > 0 {
+			if filter := filters[0]; filter != nil {
 				req.ResponseFilter = &responseFilter{
-					GroupBaseInfoFilter:    filter[0].GetAllBaseInfoFilterFields(),
-					MemberInfoFilter:       filter[0].GetAllMemberInfoFilterFields(),
-					GroupCustomDataFilter:  filter[0].GetAllGroupCustomDataFilterFields(),
-					MemberCustomDataFilter: filter[0].GetAllMemberCustomDataFilterFields(),
+					GroupBaseInfoFilter:    filter.GetAllBaseInfoFilterFields(),
+					MemberInfoFilter:       filter.GetAllMemberInfoFilterFields(),
+					GroupCustomDataFilter:  filter.GetAllGroupCustomDataFilterFields(),
+					MemberCustomDataFilter: filter.GetAllMemberCustomDataFilterFields(),
 				}
 			}
 		}
@@ -467,17 +479,17 @@ func (a *api) GetGroups(groupIds []string, filter ...*Filter) (groups []*Group, 
 // App管理员可以根据群组ID获取群组成员的资料。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1617
-func (a *api) FetchMembers(groupId string, limit, offset int, filter ...*Filter) (ret *FetchMembersRet, err error) {
-	req := fetchMembersReq{}
+func (a *api) FetchMembers(groupId string, limit, offset int, filters ...*Filter) (ret *FetchMembersRet, err error) {
+	req := &fetchMembersReq{}
 	req.GroupId = groupId
 	req.Limit = limit
 	req.Offset = offset
 
-	if len(filter) > 0 {
-		if filter[0] != nil {
-			req.MemberInfoFilter = filter[0].GetAllMemberInfoFilterFields()
-			req.MemberRoleFilter = filter[0].GetAllMemberRoleFilterValues()
-			req.MemberCustomDataFilter = filter[0].GetAllMemberCustomDataFilterFields()
+	if len(filters) > 0 {
+		if filter := filters[0]; filter != nil {
+			req.MemberInfoFilter = filter.GetAllMemberInfoFilterFields()
+			req.MemberRoleFilter = filter.GetAllMemberRoleFilterValues()
+			req.MemberCustomDataFilter = filter.GetAllMemberCustomDataFilterFields()
 		}
 	}
 
@@ -524,7 +536,7 @@ func (a *api) UpdateGroup(group *Group) (err error) {
 		return
 	}
 
-	req := updateGroupReq{}
+	req := &updateGroupReq{}
 	req.GroupId = group.id
 	req.Name = group.name
 	req.FaceUrl = group.avatar
@@ -535,9 +547,9 @@ func (a *api) UpdateGroup(group *Group) (err error) {
 	req.ShutUpAllMember = group.shutUpStatus
 
 	if data := group.GetAllCustomData(); data != nil {
-		req.AppDefinedData = make([]customData, 0, len(data))
+		req.AppDefinedData = make([]customDataItem, 0, len(data))
 		for key, val := range data {
-			req.AppDefinedData = append(req.AppDefinedData, customData{
+			req.AppDefinedData = append(req.AppDefinedData, customDataItem{
 				Key:   key,
 				Value: val,
 			})
@@ -556,7 +568,7 @@ func (a *api) UpdateGroup(group *Group) (err error) {
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1621
 func (a *api) AddMembers(groupId string, userIds []string, silence ...bool) (results []AddMembersResult, err error) {
-	req := addMembersReq{}
+	req := &addMembersReq{}
 	req.GroupId = groupId
 	req.MemberList = make([]addMemberItem, 0, len(userIds))
 	for _, userId := range userIds {
@@ -584,7 +596,7 @@ func (a *api) AddMembers(groupId string, userIds []string, silence ...bool) (res
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1622
 func (a *api) DeleteMembers(groupId string, userIds []string, reasonAndSilence ...interface{}) (err error) {
-	req := deleteMembersReq{}
+	req := &deleteMembersReq{}
 	req.GroupId = groupId
 	req.UserIds = userIds
 
@@ -621,7 +633,7 @@ func (a *api) UpdateMember(groupId string, member *Member) (err error) {
 		return
 	}
 
-	req := updateMemberReq{}
+	req := &updateMemberReq{}
 	req.GroupId = groupId
 	req.UserId = member.userId
 	req.Role = member.role
@@ -630,9 +642,9 @@ func (a *api) UpdateMember(groupId string, member *Member) (err error) {
 	req.ShutUpUntil = member.shutUpUntil
 
 	if data := member.GetAllCustomData(); data != nil {
-		req.AppMemberDefinedData = make([]customData, 0, len(data))
+		req.AppMemberDefinedData = make([]customDataItem, 0, len(data))
 		for key, val := range data {
-			req.AppMemberDefinedData = append(req.AppMemberDefinedData, customData{
+			req.AppMemberDefinedData = append(req.AppMemberDefinedData, customDataItem{
 				Key:   key,
 				Value: val,
 			})
@@ -651,7 +663,7 @@ func (a *api) UpdateMember(groupId string, member *Member) (err error) {
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1624
 func (a *api) DestroyGroup(groupId string) (err error) {
-	req := destroyGroupReq{GroupId: groupId}
+	req := &destroyGroupReq{GroupId: groupId}
 
 	if err = a.client.Post(serviceGroup, commandDestroyGroup, req, &types.ActionBaseResp{}); err != nil {
 		return
@@ -665,7 +677,7 @@ func (a *api) DestroyGroup(groupId string) (err error) {
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1625
 func (a *api) FetchMemberGroups(arg FetchMemberGroupsArg) (ret *FetchMemberGroupsRet, err error) {
-	req := fetchMemberGroupsReq{}
+	req := &fetchMemberGroupsReq{}
 	req.UserId = arg.UserId
 	req.Limit = arg.Limit
 	req.Offset = arg.Offset
@@ -969,9 +981,9 @@ func (a *api) ImportGroup(group *Group) (groupId string, err error) {
 	req.CreateTime = group.createTime
 
 	if data := group.GetAllCustomData(); data != nil {
-		req.AppDefinedData = make([]customData, 0, len(data))
+		req.AppDefinedData = make([]customDataItem, 0, len(data))
 		for key, val := range data {
-			req.AppDefinedData = append(req.AppDefinedData, customData{
+			req.AppDefinedData = append(req.AppDefinedData, customDataItem{
 				Key:   key,
 				Value: val,
 			})
@@ -995,16 +1007,14 @@ func (a *api) ImportGroup(group *Group) (groupId string, err error) {
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1635
 func (a *api) ImportMessages(groupId string, messages ...*Message) (results []ImportMessagesResult, err error) {
-	req := importMessagesReq{}
-	req.GroupId = groupId
-	req.MsgList = make([]messageInfo, 0, len(messages))
+	req := &importMessagesReq{GroupId: groupId, Messages: make([]messageItem, 0, len(messages))}
 
 	for _, message := range messages {
 		if err = message.checkImportError(); err != nil {
 			return
 		}
 
-		req.MsgList = append(req.MsgList, messageInfo{
+		req.Messages = append(req.Messages, messageItem{
 			FromUserId: message.GetSender(),
 			MsgBody:    message.GetBody(),
 			SendTime:   message.GetSendTime(),
@@ -1016,9 +1026,9 @@ func (a *api) ImportMessages(groupId string, messages ...*Message) (results []Im
 
 	if err = a.client.Post(serviceGroup, commandImportGroupMsg, req, resp); err != nil {
 		return
-	} else {
-		results = resp.Results
 	}
+
+	results = resp.Results
 
 	return
 }
@@ -1029,11 +1039,11 @@ func (a *api) ImportMessages(groupId string, messages ...*Message) (results []Im
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1636
 func (a *api) ImportMembers(groupId string, members ...*Member) (results []ImportMemberResult, err error) {
-	req := importMembersReq{}
-	req.GroupId = groupId
-	req.MemberList = make([]memberInfo, 0, len(members))
+	req := &importMembersReq{GroupId: groupId, Members: make([]*memberItem, 0, len(members))}
+	resp := &importMembersResp{}
+
 	for _, member := range members {
-		req.MemberList = append(req.MemberList, memberInfo{
+		req.Members = append(req.Members, &memberItem{
 			UserId:       member.userId,
 			Role:         member.role,
 			JoinTime:     member.joinTime,
@@ -1041,13 +1051,11 @@ func (a *api) ImportMembers(groupId string, members ...*Member) (results []Impor
 		})
 	}
 
-	resp := &importMembersResp{}
-
 	if err = a.client.Post(serviceGroup, commandImportGroupMember, req, resp); err != nil {
 		return
-	} else {
-		results = resp.Results
 	}
+
+	results = resp.Results
 
 	return
 }
@@ -1058,7 +1066,7 @@ func (a *api) ImportMembers(groupId string, members ...*Member) (results []Impor
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1637
 func (a *api) SetMemberUnreadMsgNum(groupId, userId string, unreadMsgNum int) (err error) {
-	req := setMemberUnreadMsgNumReq{GroupId: groupId, UserId: userId, UnreadMsgNum: unreadMsgNum}
+	req := &setMemberUnreadMsgNumReq{GroupId: groupId, UserId: userId, UnreadMsgNum: unreadMsgNum}
 
 	if err = a.client.Post(serviceGroup, commandSetUnreadMsgNum, req, &types.ActionBaseResp{}); err != nil {
 		return
@@ -1072,7 +1080,7 @@ func (a *api) SetMemberUnreadMsgNum(groupId, userId string, unreadMsgNum int) (e
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/2359
 func (a *api) RevokeMemberMessages(groupId, userId string) (err error) {
-	req := revokeMemberMessagesReq{GroupId: groupId, UserId: userId}
+	req := &revokeMemberMessagesReq{GroupId: groupId, UserId: userId}
 
 	if err = a.client.Post(serviceGroup, commandDeleteGroupMsgBySender, req, &types.ActionBaseResp{}); err != nil {
 		return
@@ -1088,9 +1096,7 @@ func (a *api) RevokeMemberMessages(groupId, userId string) (err error) {
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/2738
 func (a *api) FetchMessages(groupId string, limit int, msgSeq ...int) (ret *FetchMessagesRet, err error) {
-	req := fetchMessagesReq{}
-	req.GroupId = groupId
-	req.ReqMsgNumber = limit
+	req := &fetchMessagesReq{GroupId: groupId, ReqMsgNumber: limit}
 
 	if len(msgSeq) > 0 {
 		req.ReqMsgSeq = msgSeq[0]
@@ -1145,7 +1151,7 @@ func (a *api) FetchMessages(groupId string, limit int, msgSeq ...int) (ret *Fetc
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/49180
 func (a *api) GetOnlineMemberNum(groupId string) (num int, err error) {
-	req := getOnlineMemberNumReq{GroupId: groupId}
+	req := &getOnlineMemberNumReq{GroupId: groupId}
 	resp := &getOnlineMemberNumResp{}
 
 	if err = a.client.Post(serviceGroup, commandGetOnlineMemberNum, req, resp); err != nil {

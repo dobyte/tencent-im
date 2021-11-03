@@ -8,9 +8,8 @@
 package profile
 
 import (
-	"errors"
-
 	"github.com/dobyte/tencent-im/internal/core"
+	"github.com/dobyte/tencent-im/internal/enum"
 	"github.com/dobyte/tencent-im/internal/types"
 )
 
@@ -50,17 +49,16 @@ func NewAPI(client core.Client) API {
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1640
 func (a *api) SetProfile(profile *Profile) (err error) {
-	userId := profile.GetUserId()
-
-	if userId == "" {
-		err = errors.New("the account is not set")
+	if err = profile.CheckError(); err != nil {
 		return
 	}
+
+	userId := profile.GetUserId()
 
 	attrs := profile.GetAttrs()
 
 	if len(attrs) == 0 {
-		err = errors.New("the attributes is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the attributes is not set")
 		return
 	}
 

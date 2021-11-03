@@ -314,8 +314,7 @@ func TestIm_Profile_SetProfile(t *testing.T) {
 	p.SetUserId(assistant)
 	p.SetAvatar("http://www.qq.com")
 	p.SetGender(profile.GenderTypeMale)
-	p.SetLocation(1, 23, 27465, 92)
-	// p.SetLocation(1, 23, 2, 92)
+	p.SetLocation(1, 23, 7465, 92)
 	p.SetLanguage(20)
 
 	if err := NewIM().Profile().SetProfile(p); err != nil {

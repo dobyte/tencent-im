@@ -8,7 +8,6 @@
 package group
 
 import (
-	"errors"
 	"time"
 
 	"github.com/dobyte/tencent-im/internal/core"
@@ -16,12 +15,12 @@ import (
 )
 
 var (
-	errNotSetGroupType          = errors.New("group type is not set")
-	errNotSetGroupName          = errors.New("group name is not set")
-	errGroupNameTooLong         = errors.New("group name is too long")
-	errInvalidGroupType         = errors.New("invalid group type")
-	errGroupIntroductionTooLong = errors.New("group introduction is too long")
-	errGroupNotificationTooLong = errors.New("group notification is too long")
+	errNotSetGroupType          = core.NewError(enum.InvalidParamsCode, "group type is not set")
+	errNotSetGroupName          = core.NewError(enum.InvalidParamsCode, "group name is not set")
+	errGroupNameTooLong         = core.NewError(enum.InvalidParamsCode, "group name is too long")
+	errInvalidGroupType         = core.NewError(enum.InvalidParamsCode, "invalid group type")
+	errGroupIntroductionTooLong = core.NewError(enum.InvalidParamsCode, "group introduction is too long")
+	errGroupNotificationTooLong = core.NewError(enum.InvalidParamsCode, "group notification is too long")
 )
 
 type (

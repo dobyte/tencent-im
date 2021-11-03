@@ -22,8 +22,8 @@ func main() {
 	})
 
 	// 导入账号
-	if err := tim.Account().ImportAccount(&account.Info{
-		Account:  "test1",
+	if err := tim.Account().ImportAccount(&account.Account{
+		UserId:   "test1",
 		Nickname: "测试账号1",
 		FaceUrl:  "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png",
 	}); err != nil {

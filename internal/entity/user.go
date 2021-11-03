@@ -10,6 +10,7 @@ package entity
 import (
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dobyte/tencent-im/internal/core"
@@ -84,33 +85,70 @@ func (u *User) GetBirthday() (birthday time.Time, exist bool) {
 	return
 }
 
-// SetLocation 所在地
+// SetLocation 设置所在地
 func (u *User) SetLocation(country uint32, province uint32, city uint32, region uint32) {
-	location := []uint32{country, province, city, region}
-	buff := make([]byte, 4*len(location))
-	for i, v := range location {
-		buff[i*4+0] = byte(v / 256 / 256 / 256 % 256)
-		buff[i*4+1] = byte(v / 256 / 256 % 256)
-		buff[i*4+2] = byte(v / 256 % 256)
-		buff[i*4+3] = byte(v % 256)
+	var (
+		str      string
+		location = []uint32{country, province, city, region}
+		builder  strings.Builder
+	)
+
+	builder.Grow(16)
+
+	for _, v := range location {
+		str = strconv.Itoa(int(v))
+
+		if len(str) > 4 {
+			u.SetError(enum.InvalidParamsCode, "invalid location params")
+			break
+		}
+
+		builder.WriteString(strings.Repeat("0", 4-len(str)))
+		builder.WriteString(str)
 	}
 
-	fmt.Println("国家，省，市，地区分别为：", country, province, city, region)
-	fmt.Println("最终字节：", buff)
-	fmt.Println("最终字符串：", string(buff))
-
-	// u.SetAttr(enum.StandardAttrLocation, string(buff))
-	u.SetAttr(enum.StandardAttrLocation, "abcdefghijklmn")
+	u.SetAttr(enum.StandardAttrLocation, builder.String())
 }
 
+// GetLocation 获取所在地
 func (u *User) GetLocation() (country uint32, province uint32, city uint32, region uint32, exist bool) {
-	fmt.Println(u.GetAttr(enum.StandardAttrLocation))
-
 	var v interface{}
 
 	if v, exist = u.attrs[enum.StandardAttrLocation]; exist {
-		b := []byte(v.(string))
-		fmt.Println(b)
+		str := v.(string)
+
+		if len(str) != 16 {
+			exist = false
+			return
+		}
+
+		if c, err := strconv.Atoi(str[0:4]); err != nil || c < 0 {
+			exist = false
+			return
+		} else {
+			country = uint32(c)
+		}
+
+		if c, err := strconv.Atoi(str[4:8]); err != nil || c < 0 {
+			exist = false
+			return
+		} else {
+			province = uint32(c)
+		}
+
+		if c, err := strconv.Atoi(str[8:12]); err != nil || c < 0 {
+			exist = false
+			return
+		} else {
+			city = uint32(c)
+		}
+
+		if c, err := strconv.Atoi(str[12:16]); err != nil || c < 0 {
+			exist = false
+			return
+		} else {
+			region = uint32(c)
+		}
 	}
 
 	return

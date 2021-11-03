@@ -8,7 +8,6 @@
 package core
 
 import (
-	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -27,18 +26,18 @@ const (
 	defaultExpire      = 3600
 )
 
-var invalidResponse = errors.New("invalid response")
+var invalidResponse = NewError(enum.InvalidResponseCode, "invalid response")
 
 type Client interface {
-	// Get send an http request use get method.
+	// Get GET请求
 	Get(serviceName string, command string, data interface{}, resp interface{}) error
-	// Post send an http request use post method.
+	// Post POST请求
 	Post(serviceName string, command string, data interface{}, resp interface{}) error
-	// Put send an http request use put method.
+	// Put PUT请求
 	Put(serviceName string, command string, data interface{}, resp interface{}) error
-	// Patch send an http request use patch method.
+	// Patch PATCH请求
 	Patch(serviceName string, command string, data interface{}, resp interface{}) error
-	// Delete send an http request use patch method.
+	// Delete DELETE请求
 	Delete(serviceName string, command string, data interface{}, resp interface{}) error
 }
 
@@ -67,32 +66,32 @@ func NewClient(opt *Options) Client {
 	return c
 }
 
-// Get send an http request use get method.
+// Get GET请求
 func (c *client) Get(serviceName string, command string, data interface{}, resp interface{}) error {
 	return c.request(http.MethodGet, serviceName, command, data, resp)
 }
 
-// Post send an http request use post method.
+// Post POST请求
 func (c *client) Post(serviceName string, command string, data interface{}, resp interface{}) error {
 	return c.request(http.MethodPost, serviceName, command, data, resp)
 }
 
-// Put send an http request use put method.
+// Put PUT请求
 func (c *client) Put(serviceName string, command string, data interface{}, resp interface{}) error {
 	return c.request(http.MethodPut, serviceName, command, data, resp)
 }
 
-// Patch send an http request use patch method.
+// Patch PATCH请求
 func (c *client) Patch(serviceName string, command string, data interface{}, resp interface{}) error {
 	return c.request(http.MethodPatch, serviceName, command, data, resp)
 }
 
-// Delete send an http request use patch method.
+// Delete DELETE请求
 func (c *client) Delete(serviceName string, command string, data interface{}, resp interface{}) error {
 	return c.request(http.MethodDelete, serviceName, command, data, resp)
 }
 
-// request send an http request.
+// request Request请求
 func (c *client) request(method, serviceName, command string, data, resp interface{}) error {
 	res, err := c.client.Request(method, c.buildUrl(serviceName, command), data)
 	if err != nil {
@@ -122,7 +121,7 @@ func (c *client) request(method, serviceName, command string, data, resp interfa
 	return nil
 }
 
-// buildUrl build a request url.
+// buildUrl 构建一个请求URL
 func (c *client) buildUrl(serviceName string, command string) string {
 	format := "/%s/%s/%s?sdkappid=%d&identifier=%s&usersig=%s&random=%d&contenttype=%s"
 	random := rand.Int31()
@@ -130,10 +129,9 @@ func (c *client) buildUrl(serviceName string, command string) string {
 	return fmt.Sprintf(format, defaultVersion, serviceName, command, c.opt.AppId, c.opt.UserId, userSig, random, defaultContentType)
 }
 
-// getUserSig get a userSig
+// getUserSig 获取签名
 func (c *client) getUserSig() string {
-	now := time.Now()
-	expire := c.opt.Expire
+	now, expire := time.Now(), c.opt.Expire
 
 	if expire <= 0 {
 		expire = defaultExpire
