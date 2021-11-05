@@ -167,7 +167,7 @@ func main() {
         <td>√</td>
     </tr>
     <tr>
-        <td rowspan="21">关系链管理</td>
+        <td rowspan="23">关系链管理</td>
         <td>
             <a href="https://cloud.tencent.com/document/product/269/1643">添加单个好友</a>
         </td>
@@ -290,6 +290,21 @@ func main() {
     </tr>
     <tr>
         <td>
+            <a href="https://cloud.tencent.com/document/product/269/1647">拉取好友</a>
+        </td>
+        <td>SNS.PullFriends</td>
+        <td>
+            <ul>
+                <li>本API是借助"拉取好友"API进行扩展实现</li>
+                <li>分页拉取全量好友数据。</li>
+                <li>不支持资料数据的拉取。</li>
+                <li>不需要指定请求拉取的字段，默认返回全量的标配好友数据和自定义好友数据。</li>
+            </ul>
+        </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
             <a href="https://cloud.tencent.com/document/product/269/8609">拉取单个指定好友</a>
         </td>
         <td>SNS.GetFriend</td>
@@ -336,6 +351,19 @@ func main() {
         </td>
         <td>SNS.FetchBlacklist</td>
         <td>支持分页拉取所有黑名单。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/3722">拉取黑名单</a>
+        </td>
+        <td>SNS.PullBlacklist</td>
+        <td>
+            <ul>
+                <li>本API是借助"拉取黑名单"API进行扩展实现</li>
+                <li>支持分页拉取所有黑名单。</li>
+            </ul>
+        </td>
         <td>√</td>
     </tr>
     <tr>
@@ -641,7 +669,7 @@ func main() {
         <td>√</td>
     </tr>
     <tr>
-        <td rowspan="28">群组管理</td>
+        <td rowspan="29">群组管理</td>
         <td>
             <a href="https://cloud.tencent.com/document/product/269/1614">拉取App中的所有群组ID</a>
         </td>
@@ -655,6 +683,14 @@ func main() {
         </td>
         <td>Group.FetchGroups</td>
         <td>本方法由“拉取App中的所有群组ID（FetchGroupIds）”拓展而来</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1614">续拉取App中的所有群组</a>
+        </td>
+        <td>Group.PullGroups</td>
+        <td>本方法由“拉取App中的所有群组（FetchGroups）”拓展而来</td>
         <td>√</td>
     </tr>
     <tr>
@@ -899,12 +935,25 @@ func main() {
         <td>√</td>
     </tr>
     <tr>
-        <td rowspan="2">最近联系人</td>
+        <td rowspan="3">最近联系人</td>
         <td>
             <a href="https://cloud.tencent.com/document/product/269/62118">拉取会话列表</a>
         </td>
         <td>RecentContact.FetchSessions</td>
         <td>支持分页拉取会话列表。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/62118">拉取会话列表</a>
+        </td>
+        <td>RecentContact.PullSessions</td>
+        <td>
+            <ul>
+                <li>本API是借助"拉取会话列表"API进行扩展实现</li>
+                <li>支持分页拉取会话列表。</li>
+            </ul>
+        </td>
         <td>√</td>
     </tr>
     <tr>

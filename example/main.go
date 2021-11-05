@@ -28,9 +28,9 @@ func main() {
 		FaceUrl:  "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png",
 	}); err != nil {
 		if e, ok := err.(im.Error); ok {
-			fmt.Println(fmt.Sprintf("import accout failed, code:%d, message:%s.", e.Code(), e.Message()))
+			fmt.Println(fmt.Sprintf("import account failed, code:%d, message:%s.", e.Code(), e.Message()))
 		} else {
-			fmt.Println(fmt.Sprintf("import accout failed:%s.", err.Error()))
+			fmt.Println(fmt.Sprintf("import account failed:%s.", err.Error()))
 		}
 	}
 

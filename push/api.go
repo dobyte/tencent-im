@@ -74,13 +74,13 @@ type API interface {
 	// 管理员给用户设置属性。每次最多只能给100个用户设置属性。使用前请先 设置应用属性名称 。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/45938
-	SetUserAttrs(attrs map[string]map[string]interface{}) (err error)
+	SetUserAttrs(userAttrs map[string]map[string]interface{}) (err error)
 
 	// DeleteUserAttrs 删除用户属性
 	// 管理员给用户删除属性。注意每次最多只能给100个用户删除属性。使用前请先 设置应用属性名称。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/45939
-	DeleteUserAttrs(attrs map[string][]string) (err error)
+	DeleteUserAttrs(userAttrs map[string][]string) (err error)
 
 	// GetUserTags 获取用户标签
 	// 获取用户标签（必须以管理员帐号调用）。每次最多只能获取100个用户的标签。
@@ -95,13 +95,13 @@ type API interface {
 	// 单个标签最大长度为50字节。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/45941
-	AddUserTags(tags map[string][]string) (err error)
+	AddUserTags(userTags map[string][]string) (err error)
 
 	// DeleteUserTags 删除用户标签
 	// 管理员给用户删除标签。注意每次最多只能给100个用户删除标签。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/45942
-	DeleteUserTags(tags map[string][]string) (err error)
+	DeleteUserTags(userTags map[string][]string) (err error)
 
 	// DeleteUserAllTags 删除用户所有标签
 	// 管理员给用户删除所有标签。注意每次最多只能给100个用户删除所有标签。
@@ -234,8 +234,8 @@ func (a *api) GetUserAttrs(userIds ...string) (attrs map[string]map[string]inter
 // 管理员给用户设置属性。每次最多只能给100个用户设置属性。使用前请先 设置应用属性名称 。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/45938
-func (a *api) SetUserAttrs(attrs map[string]map[string]interface{}) (err error) {
-	if c := len(attrs); c == 0 {
+func (a *api) SetUserAttrs(userAttrs map[string]map[string]interface{}) (err error) {
+	if c := len(userAttrs); c == 0 {
 		err = core.NewError(enum.InvalidParamsCode, "the attributes is not set")
 		return
 	} else if c > batchSetUserAttrsLimit {
@@ -243,8 +243,8 @@ func (a *api) SetUserAttrs(attrs map[string]map[string]interface{}) (err error) 
 		return
 	}
 
-	req := &setUserAttrsReq{Attrs: make([]*userAttrItem, 0, len(attrs))}
-	for userId, attrs := range attrs {
+	req := &setUserAttrsReq{Attrs: make([]*userAttrItem, 0, len(userAttrs))}
+	for userId, attrs := range userAttrs {
 		req.Attrs = append(req.Attrs, &userAttrItem{
 			UserId: userId,
 			Attrs:  attrs,
@@ -262,8 +262,8 @@ func (a *api) SetUserAttrs(attrs map[string]map[string]interface{}) (err error) 
 // 管理员给用户删除属性。注意每次最多只能给100个用户删除属性。使用前请先 设置应用属性名称。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/45939
-func (a *api) DeleteUserAttrs(attrs map[string][]string) (err error) {
-	if c := len(attrs); c == 0 {
+func (a *api) DeleteUserAttrs(userAttrs map[string][]string) (err error) {
+	if c := len(userAttrs); c == 0 {
 		err = core.NewError(enum.InvalidParamsCode, "the attributes is not set")
 		return
 	} else if c > batchDeleteUserAttrsLimit {
@@ -271,8 +271,8 @@ func (a *api) DeleteUserAttrs(attrs map[string][]string) (err error) {
 		return
 	}
 
-	req := &deleteUserAttrsReq{Attrs: make([]deleteUserAttr, 0, len(attrs))}
-	for userId, attrs := range attrs {
+	req := &deleteUserAttrsReq{Attrs: make([]deleteUserAttr, 0, len(userAttrs))}
+	for userId, attrs := range userAttrs {
 		req.Attrs = append(req.Attrs, deleteUserAttr{
 			UserId: userId,
 			Attrs:  attrs,
@@ -323,8 +323,8 @@ func (a *api) GetUserTags(userIds ...string) (tags map[string][]string, err erro
 // 单个标签最大长度为50字节。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/45941
-func (a *api) AddUserTags(tags map[string][]string) (err error) {
-	if c := len(tags); c == 0 {
+func (a *api) AddUserTags(userTags map[string][]string) (err error) {
+	if c := len(userTags); c == 0 {
 		err = core.NewError(enum.InvalidParamsCode, "the tags of user is not set")
 		return
 	} else if c > batchAddUserTagsLimit {
@@ -332,8 +332,8 @@ func (a *api) AddUserTags(tags map[string][]string) (err error) {
 		return
 	}
 
-	req := &addUserTagsReq{Tags: make([]*userTag, 0, len(tags))}
-	for userId, tags := range tags {
+	req := &addUserTagsReq{Tags: make([]*userTag, 0, len(userTags))}
+	for userId, tags := range userTags {
 		req.Tags = append(req.Tags, &userTag{
 			UserId: userId,
 			Tags:   tags,
@@ -351,8 +351,8 @@ func (a *api) AddUserTags(tags map[string][]string) (err error) {
 // 管理员给用户删除标签。注意每次最多只能给100个用户删除标签。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/45942
-func (a *api) DeleteUserTags(tags map[string][]string) (err error) {
-	if c := len(tags); c == 0 {
+func (a *api) DeleteUserTags(userTags map[string][]string) (err error) {
+	if c := len(userTags); c == 0 {
 		err = core.NewError(enum.InvalidParamsCode, "the tags of user is not set")
 		return
 	} else if c > batchDeleteUserTagsLimit {
@@ -360,8 +360,8 @@ func (a *api) DeleteUserTags(tags map[string][]string) (err error) {
 		return
 	}
 
-	req := &deleteUserTagsReq{Tags: make([]*userTag, 0, len(tags))}
-	for userId, tags := range tags {
+	req := &deleteUserTagsReq{Tags: make([]*userTag, 0, len(userTags))}
+	for userId, tags := range userTags {
 		req.Tags = append(req.Tags, &userTag{
 			UserId: userId,
 			Tags:   tags,

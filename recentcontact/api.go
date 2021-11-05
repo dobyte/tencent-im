@@ -25,6 +25,13 @@ type API interface {
 	// https://cloud.tencent.com/document/product/269/62118
 	FetchSessions(arg *FetchSessionsArg) (ret *FetchSessionsRet, err error)
 
+	// PullSessions 续拉取会话列表
+	// 本API是借助"拉取会话列表"API进行扩展实现
+	// 支持分页拉取会话列表
+	// 点击查看详细文档:
+	// https://cloud.tencent.com/document/product/269/62118
+	PullSessions(arg *PullSessionsArg, fn func(ret *FetchSessionsRet)) (err error)
+
 	// DeleteSession 删除单个会话
 	// 删除指定会话，支持同步清理漫游消息。
 	// 点击查看详细文档:
@@ -76,11 +83,43 @@ func (a *api) FetchSessions(arg *FetchSessionsArg) (ret *FetchSessionsRet, err e
 		StartIndex:    resp.StartIndex,
 		TopTimeStamp:  resp.TopTimeStamp,
 		TopStartIndex: resp.TopStartIndex,
-		Sessions:      resp.Sessions,
+		List:          resp.Sessions,
+		HasMore:       resp.CompleteFlag == 0,
 	}
 
-	if resp.CompleteFlag == 1 {
-		ret.IsOver = true
+	return
+}
+
+// PullSessions 续拉取会话列表
+// 本API是借助"拉取会话列表"API进行扩展实现
+// 支持分页拉取会话列表
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/62118
+func (a *api) PullSessions(arg *PullSessionsArg, fn func(ret *FetchSessionsRet)) (err error) {
+	var (
+		ret *FetchSessionsRet
+		req = &FetchSessionsArg{
+			UserId:                  arg.UserId,
+			IsAllowTopSession:       arg.IsAllowTopSession,
+			IsReturnEmptySession:    arg.IsReturnEmptySession,
+			IsAllowTopSessionPaging: arg.IsAllowTopSessionPaging,
+		}
+	)
+
+	for ret == nil || ret.HasMore {
+		ret, err = a.FetchSessions(req)
+		if err != nil {
+			return
+		}
+
+		fn(ret)
+
+		if ret.HasMore {
+			req.TimeStamp = ret.TimeStamp
+			req.StartIndex = ret.StartIndex
+			req.TopTimeStamp = ret.TopTimeStamp
+			req.TopStartIndex = ret.TopStartIndex
+		}
 	}
 
 	return

@@ -21,14 +21,22 @@ type FetchSessionsArg struct {
 	IsAllowTopSessionPaging bool   // （选填）是否支持置顶会话分页
 }
 
+// PullSessionsArg 续拉取会话列表（参数）
+type PullSessionsArg struct {
+	UserId                  string // （必填）请求拉取该用户的会话列表
+	IsAllowTopSession       bool   // （选填）是否支持置顶会话
+	IsReturnEmptySession    bool   // （选填）是否返回空会话
+	IsAllowTopSessionPaging bool   // （选填）是否支持置顶会话分页
+}
+
 // FetchSessionsRet 拉取会话列表（返回）
 type FetchSessionsRet struct {
-	IsOver        bool           // 是否拉完了数据
 	TimeStamp     int            // 普通会话下一页拉取的起始时间，分页拉取时通过请求包的 TimeStamp 字段带给移动通信后台
 	StartIndex    int            // 普通会话下一页拉取的起始位置，分页拉取时通过请求包的 StartIndex 字段带给移动通信后台
 	TopTimeStamp  int            // 置顶会话下一页拉取的起始时间，分页拉取时通过请求包的 TopTimeStamp 字段带给移动通信后台
 	TopStartIndex int            // 置顶会话下一页拉取的起始位置，分页拉取时通过请求包的 TopStartIndex 字段带给移动通信后台
-	Sessions      []*SessionItem // 会话对象数组
+	HasMore       bool           // 是否拉完了数据
+	List          []*SessionItem // 会话对象数组
 }
 
 // fetchSessionsReq 拉取会话列表（请求）

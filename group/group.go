@@ -72,18 +72,18 @@ type Group struct {
 func NewGroup(id ...string) *Group {
 	group := &Group{}
 	if len(id) > 0 {
-		group.SetId(id[0])
+		group.SetGroupId(id[0])
 	}
 	return group
 }
 
-// SetId 设置群ID
-func (g *Group) SetId(id string) {
+// SetGroupId 设置群ID
+func (g *Group) SetGroupId(id string) {
 	g.id = id
 }
 
-// GetId 获取群ID
-func (g *Group) GetId() string {
+// GetGroupId 获取群ID
+func (g *Group) GetGroupId() string {
 	return g.id
 }
 

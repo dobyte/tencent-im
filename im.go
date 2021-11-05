@@ -86,17 +86,17 @@ func (i *im) GetUserSig() UserSig {
 	return UserSig{UserSig: userSig, ExpireAt: expireAt}
 }
 
-// SNS 获取关系链管理接口
+// SNS 获取关系链管理接口ok
 func (i *im) SNS() sns.API {
 	return sns.NewAPI(i.client)
 }
 
-// Mute 获取全局禁言管理接口
+// Mute 获取全局禁言管理接口ok
 func (i *im) Mute() mute.API {
 	return mute.NewAPI(i.client)
 }
 
-// Push 获取全员推送接口
+// Push 获取全员推送接口ok
 func (i *im) Push() push.API {
 	return push.NewAPI(i.client)
 }
@@ -106,27 +106,27 @@ func (i *im) Group() group.API {
 	return group.NewAPI(i.client)
 }
 
-// Account 获取账号管理接口
+// Account 获取账号管理接口ok
 func (i *im) Account() account.API {
 	return account.NewAPI(i.client)
 }
 
-// Profile 获取资料管理接口
+// Profile 获取资料管理接口ok
 func (i *im) Profile() profile.API {
 	return profile.NewAPI(i.client)
 }
 
-// Private 获取私聊消息接口
+// Private 获取私聊消息接口ok
 func (i *im) Private() private.API {
 	return private.NewAPI(i.client)
 }
 
-// Operation 获取运营管理接口
+// Operation 获取运营管理接口ok
 func (i *im) Operation() operation.API {
 	return operation.NewAPI(i.client)
 }
 
-// RecentContact 获取最近联系人接口
+// RecentContact 获取最近联系人接口ok
 func (i *im) RecentContact() recentcontact.API {
 	return recentcontact.NewAPI(i.client)
 }

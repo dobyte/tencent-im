@@ -25,12 +25,12 @@ type Friend struct {
 	customAttrs map[string]interface{}
 }
 
-func NewFriend(account ...string) *Friend {
+func NewFriend(userId ...string) *Friend {
 	f := new(Friend)
 	f.customAttrs = make(map[string]interface{})
 
-	if len(account) > 0 {
-		f.SetUserId(account[0])
+	if len(userId) > 0 {
+		f.SetUserId(userId[0])
 	}
 
 	return f

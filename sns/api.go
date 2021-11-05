@@ -136,6 +136,15 @@ type API interface {
 	// https://cloud.tencent.com/document/product/269/1647
 	FetchFriends(userId string, startIndex int, sequence ...int) (ret *FetchFriendsRet, err error)
 
+	// PullFriends 续拉取好友
+	// 本API是借助"拉取好友"API进行扩展实现
+	// 分页拉取全量好友数据。
+	// 不支持资料数据的拉取。
+	// 不需要指定请求拉取的字段，默认返回全量的标配好友数据和自定义好友数据。
+	// 点击查看详细文档:
+	// https://cloud.tencent.com/document/product/269/1647
+	PullFriends(userId string, fn func(ret *FetchFriendsRet)) (err error)
+
 	// AddBlacklist 添加黑名单
 	// 添加黑名单，支持批量添加黑名单。
 	// 点击查看详细文档:
@@ -152,7 +161,14 @@ type API interface {
 	// 支持分页拉取所有黑名单。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/3722
-	FetchBlacklist(userId string, startIndex, maxLimited, lastSequence int) (ret *FetchBlacklistRet, err error)
+	FetchBlacklist(userId string, maxLimited int, startIndexAndSequence ...int) (ret *FetchBlacklistRet, err error)
+
+	// PullBlacklist 拉取黑名单
+	// 本API是借助"拉取黑名单"API进行扩展实现
+	// 支持分页拉取所有黑名单。
+	// 点击查看详细文档:
+	// https://cloud.tencent.com/document/product/269/3722
+	PullBlacklist(userId string, maxLimited int, fn func(ret *FetchBlacklistRet)) (err error)
 
 	// CheckBlacklist 校验黑名单
 	// 点击查看详细文档:
@@ -198,11 +214,9 @@ func (a *api) AddFriend(userId string, isBothAdd, isForceAdd bool, friend *Frien
 		return
 	}
 
-	if results != nil && len(results) > 0 {
-		for _, result := range results {
-			if result.UserId == friend.GetUserId() && result.ResultCode != enum.SuccessCode {
-				return core.NewError(result.ResultCode, result.ResultInfo)
-			}
+	for _, result := range results {
+		if result.UserId == friend.GetUserId() && result.ResultCode != enum.SuccessCode {
+			return core.NewError(result.ResultCode, result.ResultInfo)
 		}
 	}
 
@@ -272,11 +286,9 @@ func (a *api) ImportFriend(userId string, friend *Friend) (err error) {
 		return
 	}
 
-	if results != nil && len(results) > 0 {
-		for _, result := range results {
-			if result.UserId == friend.GetUserId() && result.ResultCode != enum.SuccessCode {
-				return core.NewError(result.ResultCode, result.ResultInfo)
-			}
+	for _, result := range results {
+		if result.UserId == friend.GetUserId() && result.ResultCode != enum.SuccessCode {
+			return core.NewError(result.ResultCode, result.ResultInfo)
 		}
 	}
 
@@ -345,11 +357,9 @@ func (a *api) UpdateFriend(userId string, friend *Friend) (err error) {
 		return
 	}
 
-	if results != nil && len(results) > 0 {
-		for _, result := range results {
-			if result.UserId == friend.GetUserId() && result.ResultCode != enum.SuccessCode {
-				return core.NewError(result.ResultCode, result.ResultInfo)
-			}
+	for _, result := range results {
+		if result.UserId == friend.GetUserId() && result.ResultCode != enum.SuccessCode {
+			return core.NewError(result.ResultCode, result.ResultInfo)
 		}
 	}
 
@@ -610,12 +620,10 @@ func (a *api) FetchFriends(userId string, startIndex int, sequence ...int) (ret 
 	ret = &FetchFriendsRet{
 		StandardSequence: resp.StandardSequence,
 		CustomSequence:   resp.CustomSequence,
-		FriendNum:        resp.FriendNum,
-		NextStartIndex:   resp.NextStartIndex,
-	}
-
-	if resp.CompleteFlag != 0 {
-		ret.IsOver = true
+		StartIndex:       resp.NextStartIndex,
+		Total:            resp.FriendNum,
+		HasMore:          resp.CompleteFlag == 0,
+		List:             make([]*Friend, 0, len(resp.Friends)),
 	}
 
 	for _, item := range resp.Friends {
@@ -623,7 +631,40 @@ func (a *api) FetchFriends(userId string, startIndex int, sequence ...int) (ret 
 		for _, v := range item.Values {
 			friend.SetAttr(v.Tag, v.Value)
 		}
-		ret.Friends = append(ret.Friends, friend)
+		ret.List = append(ret.List, friend)
+	}
+
+	return
+}
+
+// PullFriends 续拉取好友
+// 本API是借助"拉取好友"API进行扩展实现
+// 分页拉取全量好友数据。
+// 不支持资料数据的拉取。
+// 不需要指定请求拉取的字段，默认返回全量的标配好友数据和自定义好友数据。
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/1647
+func (a *api) PullFriends(userId string, fn func(ret *FetchFriendsRet)) (err error) {
+	var (
+		ret              *FetchFriendsRet
+		startIndex       int
+		standardSequence int
+		customSequence   int
+	)
+
+	for ret == nil || ret.HasMore {
+		ret, err = a.FetchFriends(userId, startIndex, standardSequence, customSequence)
+		if err != nil {
+			return
+		}
+
+		fn(ret)
+
+		if ret.HasMore {
+			startIndex = ret.StartIndex
+			standardSequence = ret.StandardSequence
+			customSequence = ret.CustomSequence
+		}
 	}
 
 	return
@@ -683,8 +724,17 @@ func (a *api) DeleteBlacklist(userId string, deletedUserIds ...string) (results 
 // 支持分页拉取所有黑名单。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/3722
-func (a *api) FetchBlacklist(userId string, startIndex, maxLimited, lastSequence int) (ret *FetchBlacklistRet, err error) {
-	req := &fetchBlacklistReq{UserId: userId, StartIndex: startIndex, MaxLimited: maxLimited, LastSequence: lastSequence}
+func (a *api) FetchBlacklist(userId string, maxLimited int, startIndexAndSequence ...int) (ret *FetchBlacklistRet, err error) {
+	req := &fetchBlacklistReq{UserId: userId, MaxLimited: maxLimited}
+
+	if len(startIndexAndSequence) > 0 {
+		req.StartIndex = startIndexAndSequence[0]
+	}
+
+	if len(startIndexAndSequence) > 1 {
+		req.LastSequence = startIndexAndSequence[1]
+	}
+
 	resp := &fetchBlacklistResp{}
 
 	if err = a.client.Post(service, commandGetBlackList, req, resp); err != nil {
@@ -692,13 +742,39 @@ func (a *api) FetchBlacklist(userId string, startIndex, maxLimited, lastSequence
 	}
 
 	ret = &FetchBlacklistRet{
-		NextStartIndex:   resp.StartIndex,
+		StartIndex:       resp.StartIndex,
 		StandardSequence: resp.CurrentSequence,
-		Blacklists:       resp.Blacklists,
+		List:             resp.Blacklists,
+		HasMore:          resp.StartIndex != 0,
 	}
 
-	if resp.StartIndex == 0 {
-		ret.IsOver = true
+	return
+}
+
+// PullBlacklist 拉取黑名单
+// 本API是借助"拉取黑名单"API进行扩展实现
+// 支持分页拉取所有黑名单。
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/3722
+func (a *api) PullBlacklist(userId string, maxLimited int, fn func(ret *FetchBlacklistRet)) (err error) {
+	var (
+		ret              *FetchBlacklistRet
+		startIndex       = 0
+		standardSequence = 0
+	)
+
+	for ret == nil || ret.HasMore {
+		ret, err = a.FetchBlacklist(userId, maxLimited, startIndex, standardSequence)
+		if err != nil {
+			return
+		}
+
+		fn(ret)
+
+		if ret.HasMore {
+			startIndex = ret.StartIndex
+			standardSequence = ret.StandardSequence
+		}
 	}
 
 	return

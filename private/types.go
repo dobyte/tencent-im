@@ -18,7 +18,7 @@ type (
 		MsgSeq                int                    `json:"MsgSeq,omitempty"`                // （选填）消息序列号，后台会根据该字段去重及进行同秒内消息的排序，详细规则请看本接口的功能说明。若不填该字段，则由后台填入随机数。
 		MsgRandom             uint32                 `json:"MsgRandom"`                       // （必填）消息随机数，后台用于同一秒内的消息去重。请确保该字段填的是随机数
 		MsgTimeStamp          int64                  `json:"MsgTimeStamp,omitempty"`          // （选填）消息时间戳，UNIX 时间戳（单位：秒）
-		MsgBody               []types.MsgBody        `json:"MsgBody"`                         // （必填）消息内容，具体格式请参考 消息格式描述（注意，一条消息可包括多种消息元素，MsgBody 为 Array 类型）
+		MsgBody               []*types.MsgBody       `json:"MsgBody"`                         // （必填）消息内容，具体格式请参考 消息格式描述（注意，一条消息可包括多种消息元素，MsgBody 为 Array 类型）
 		SyncOtherMachine      int                    `json:"SyncOtherMachine,omitempty"`      // （选填）消息是否同步到在线终端和漫游上 1：把消息同步到 From_Account 在线终端和漫游上；2：消息不同步至 From_Account； 若不填写默认情况下会将消息存 From_Account 漫游
 		CustomData            string                 `json:"CloudCustomData,omitempty"`       // （选填）消息回调禁止开关，只对本条消息有效，
 		SendMsgControl        []string               `json:"SendMsgControl,omitempty"`        // （选填）消息发送控制选项，是一个 String 数组，只对本条消息有效。
@@ -45,7 +45,7 @@ type (
 		ToUserIds        []string               `json:"To_Account"`                 // （必填）消息接收方UserID
 		MsgSeq           int                    `json:"MsgSeq,omitempty"`           // （选填）消息序列号，后台会根据该字段去重及进行同秒内消息的排序，详细规则请看本接口的功能说明。若不填该字段，则由后台填入随机数。
 		MsgRandom        uint32                 `json:"MsgRandom"`                  // （必填）消息随机数，后台用于同一秒内的消息去重。请确保该字段填的是随机数
-		MsgBody          []types.MsgBody        `json:"MsgBody"`                    // （必填）消息内容，具体格式请参考 消息格式描述（注意，一条消息可包括多种消息元素，MsgBody 为 Array 类型）
+		MsgBody          []*types.MsgBody       `json:"MsgBody"`                    // （必填）消息内容，具体格式请参考 消息格式描述（注意，一条消息可包括多种消息元素，MsgBody 为 Array 类型）
 		SyncOtherMachine int                    `json:"SyncOtherMachine,omitempty"` // （选填）消息是否同步到在线终端和漫游上 1：把消息同步到 From_Account 在线终端和漫游上；2：消息不同步至 From_Account； 若不填写默认情况下会将消息存 From_Account 漫游
 		CustomData       string                 `json:"CloudCustomData,omitempty"`  // （选填）消息回调禁止开关，只对本条消息有效，
 		SendMsgControl   []string               `json:"SendMsgControl,omitempty"`   // （选填）消息发送控制选项，是一个 String 数组，只对本条消息有效。
@@ -73,14 +73,14 @@ type (
 
 	// 导入消息（请求）
 	importMessageReq struct {
-		FromUserId        string          `json:"From_Account,omitempty"`      // （选填）消息发送方UserID（用于指定发送消息方帐号）
-		ToUserId          string          `json:"To_Account"`                  // （必填）消息接收方UserID
-		MsgSeq            int             `json:"MsgSeq,omitempty"`            // （选填）消息序列号，后台会根据该字段去重及进行同秒内消息的排序，详细规则请看本接口的功能说明。若不填该字段，则由后台填入随机数。
-		MsgRandom         uint32          `json:"MsgRandom"`                   // （必填）消息随机数，后台用于同一秒内的消息去重。请确保该字段填的是随机数
-		MsgTimeStamp      int64           `json:"MsgTimeStamp,omitempty"`      // （选填）消息时间戳，UNIX 时间戳（单位：秒）
-		MsgBody           []types.MsgBody `json:"MsgBody"`                     // （必填）消息内容，具体格式请参考 消息格式描述（注意，一条消息可包括多种消息元素，MsgBody 为 Array 类型）
-		SyncFromOldSystem int             `json:"SyncFromOldSystem,omitempty"` // （选填）消息是否同步到在线终端和漫游上 1：把消息同步到 From_Account 在线终端和漫游上；2：消息不同步至 From_Account； 若不填写默认情况下会将消息存 From_Account 漫游
-		CustomData        string          `json:"CloudCustomData,omitempty"`   // （选填）消息回调禁止开关，只对本条消息有效，
+		FromUserId        string           `json:"From_Account,omitempty"`      // （选填）消息发送方UserID（用于指定发送消息方帐号）
+		ToUserId          string           `json:"To_Account"`                  // （必填）消息接收方UserID
+		MsgSeq            int              `json:"MsgSeq,omitempty"`            // （选填）消息序列号，后台会根据该字段去重及进行同秒内消息的排序，详细规则请看本接口的功能说明。若不填该字段，则由后台填入随机数。
+		MsgRandom         uint32           `json:"MsgRandom"`                   // （必填）消息随机数，后台用于同一秒内的消息去重。请确保该字段填的是随机数
+		MsgTimeStamp      int64            `json:"MsgTimeStamp,omitempty"`      // （选填）消息时间戳，UNIX 时间戳（单位：秒）
+		MsgBody           []*types.MsgBody `json:"MsgBody"`                     // （必填）消息内容，具体格式请参考 消息格式描述（注意，一条消息可包括多种消息元素，MsgBody 为 Array 类型）
+		SyncFromOldSystem int              `json:"SyncFromOldSystem,omitempty"` // （选填）消息是否同步到在线终端和漫游上 1：把消息同步到 From_Account 在线终端和漫游上；2：消息不同步至 From_Account； 若不填写默认情况下会将消息存 From_Account 漫游
+		CustomData        string           `json:"CloudCustomData,omitempty"`   // （选填）消息回调禁止开关，只对本条消息有效，
 	}
 
 	// FetchMessagesArg 拉取消息参数
@@ -96,20 +96,20 @@ type (
 	// 拉取消息参数（响应）
 	fetchMessagesResp struct {
 		types.ActionBaseResp
-		Complete    int           `json:"Complete"`    // 是否全部拉取，0表示未全部拉取，需要续拉，1表示已全部拉取
-		LastMsgTime int64         `json:"LastMsgTime"` // 本次拉取到的消息里的最后一条消息的时间
-		LastMsgKey  string        `json:"LastMsgKey"`  // 本次拉取到的消息里的最后一条消息的标识
-		MsgCount    int           `json:"MsgCnt"`      // 本次拉取到的消息条数
-		MsgList     []MessageItem `json:"MsgList"`     // 消息列表
+		Complete    int            `json:"Complete"`    // 是否全部拉取，0表示未全部拉取，需要续拉，1表示已全部拉取
+		LastMsgTime int64          `json:"LastMsgTime"` // 本次拉取到的消息里的最后一条消息的时间
+		LastMsgKey  string         `json:"LastMsgKey"`  // 本次拉取到的消息里的最后一条消息的标识
+		MsgCount    int            `json:"MsgCnt"`      // 本次拉取到的消息条数
+		MsgList     []*MessageItem `json:"MsgList"`     // 消息列表
 	}
 
 	// FetchMessagesRet 消息结果
 	FetchMessagesRet struct {
-		IsOver      bool          // 是否拉取结束
-		LastMsgTime int64         // 本次拉取到的消息里的最后一条消息的时间
-		LastMsgKey  string        // 本次拉取到的消息里的最后一条消息的标识
-		MsgCount    int           // 本次拉取到的消息条数
-		MsgList     []MessageItem // 消息列表
+		LastMsgTime int64          // 本次拉取到的消息里的最后一条消息的时间
+		LastMsgKey  string         // 本次拉取到的消息里的最后一条消息的标识
+		Count       int            // 本次拉取到的消息条数
+		HasMore     bool           // 是否还有更多数据
+		List        []*MessageItem // 消息列表
 	}
 
 	// MessageItem 消息项

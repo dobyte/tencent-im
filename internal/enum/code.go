@@ -8,7 +8,9 @@
 package enum
 
 const (
-	SuccessCode         = 0  // 成功
-	InvalidParamsCode   = -1 // 无效参数（自定义）
-	InvalidResponseCode = -2 // 无效响应（自定义）
+	SuccessActionStatus = "OK"   // 成功状态
+	FailActionStatus    = "FAIL" // 失败状态
+	SuccessCode         = 0      // 成功
+	InvalidParamsCode   = -1     // 无效参数（自定义）
+	InvalidResponseCode = -2     // 无效响应（自定义）
 )

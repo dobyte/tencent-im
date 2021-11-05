@@ -23,7 +23,7 @@ type (
 		FromUserId      string                 `json:"From_Account,omitempty"`    // （选填）消息推送方帐号
 		Condition       *condition             `json:"Condition,omitempty"`       // （选填）推送条件
 		MsgRandom       uint32                 `json:"MsgRandom"`                 // （必填）消息随机数，由随机函数产生
-		MsgBody         []types.MsgBody        `json:"MsgBody"`                   // （必填）消息内容
+		MsgBody         []*types.MsgBody       `json:"MsgBody"`                   // （必填）消息内容
 		MsgLifeTime     int                    `json:"MsgLifeTime,omitempty"`     // （选填）消息离线存储时间，单位秒，最多保存7天（604800秒）。默认为0，表示不离线存储
 		OfflinePushInfo *types.OfflinePushInfo `json:"OfflinePushInfo,omitempty"` // （选填）离线推送信息配置
 	}

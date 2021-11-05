@@ -22,11 +22,11 @@ var (
 )
 
 type Message struct {
-	sender      string          // 发送方UserId
-	lifeTime    int             // 消息离线保存时长（单位：秒），最长为7天（604800秒）
-	random      uint32          // 消息随机数，由随机函数产生
-	body        []types.MsgBody // 消息体
-	offlinePush *offlinePush    // 推送实体
+	sender      string           // 发送方UserId
+	lifeTime    int              // 消息离线保存时长（单位：秒），最长为7天（604800秒）
+	random      uint32           // 消息随机数，由随机函数产生
+	body        []*types.MsgBody // 消息体
+	offlinePush *offlinePush     // 推送实体
 }
 
 // SetSender 设置发送方UserId
@@ -66,7 +66,7 @@ func (m *Message) GetRandom() uint32 {
 // AddContent 添加消息内容（添加会累加之前的消息内容）
 func (m *Message) AddContent(msgContent ...interface{}) {
 	if m.body == nil {
-		m.body = make([]types.MsgBody, 0)
+		m.body = make([]*types.MsgBody, 0)
 	}
 
 	if len(msgContent) > 0 {
@@ -93,7 +93,7 @@ func (m *Message) AddContent(msgContent ...interface{}) {
 				msgType = ""
 			}
 
-			m.body = append(m.body, types.MsgBody{
+			m.body = append(m.body, &types.MsgBody{
 				MsgType:    msgType,
 				MsgContent: content,
 			})
@@ -110,7 +110,7 @@ func (m *Message) SetContent(msgContent ...interface{}) {
 }
 
 // GetBody 获取消息体
-func (m *Message) GetBody() []types.MsgBody {
+func (m *Message) GetBody() []*types.MsgBody {
 	return m.body
 }
 

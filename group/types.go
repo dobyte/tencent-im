@@ -12,17 +12,17 @@ import "github.com/dobyte/tencent-im/internal/types"
 type (
 	// 拉取App中的所有群组（请求）
 	fetchGroupIdsReq struct {
-		Limit     int    `json:"Limit,omitempty"`
-		Next      int    `json:"Next"`
-		GroupType string `json:"GroupType,omitempty"`
+		Limit     int    `json:"Limit,omitempty"`     // （选填）本次获取的群组 ID 数量的上限，不得超过 10000。如果不填，默认为最大值 10000
+		Next      int    `json:"Next,omitempty"`      // （选填）群太多时分页拉取标志，第一次填0，以后填上一次返回的值，返回的 Next 为0代表拉完了
+		GroupType string `json:"GroupType,omitempty"` // （选填）如果仅需要返回特定群组形态的群组，可以通过 GroupType 进行过滤，但此时返回的 TotalCount 的含义就变成了 App 中属于该群组形态的群组总数。不填为获取所有类型的群组。
 	}
 
 	// 拉取App中的所有群组（响应）
 	fetchGroupIdsResp struct {
 		types.ActionBaseResp
-		Next        int           `json:"Next"`
-		TotalCount  int           `json:"TotalCount"`
-		GroupIdList []groupIdItem `json:"GroupIdList"`
+		Next        int           `json:"Next"`        // 分页拉取的标志
+		TotalCount  int           `json:"TotalCount"`  // App 当前的群组总数。
+		GroupIdList []groupIdItem `json:"GroupIdList"` // 获取到的群组 ID 的集合
 	}
 
 	// FetchGroupIdsRet 拉取App中的所有群组ID返回
@@ -39,6 +39,13 @@ type (
 		Next    int      // 分页拉取的标志
 		HasMore bool     // 是否还有更多数据
 		List    []*Group // 群组列表
+	}
+
+	// PullGroupsArg 续拉取群信息（参数）
+	PullGroupsArg struct {
+		Limit     int       // 分页限制
+		GroupType GroupType // 群组类型
+		Filter    *Filter   // 过滤器
 	}
 
 	// 群ID
@@ -103,7 +110,7 @@ type (
 
 	// 获取群详细资料（请求）
 	getGroupsReq struct {
-		GroupIds       []string        `json:"GroupIds"`
+		GroupIds       []string        `json:"GroupIdList"`
 		ResponseFilter *responseFilter `json:"ResponseFilter,omitempty"`
 	}
 
@@ -298,7 +305,7 @@ type (
 		Random                uint32                 `json:"Random"`                          // （必填）无符号32位整数
 		MsgPriority           string                 `json:"MsgPriority,omitempty"`           // （选填）消息的优先级
 		FromUserId            string                 `json:"From_Account,omitempty"`          // （选填）消息来源帐号
-		MsgBody               []types.MsgBody        `json:"MsgBody"`                         // （必填）消息体
+		MsgBody               []*types.MsgBody       `json:"MsgBody"`                         // （必填）消息体
 		OnlineOnlyFlag        int                    `json:"MsgOnlineOnlyFlag,omitempty"`     // （选填）1表示消息仅发送在线成员，默认0表示发送所有成员，AVChatRoom(直播群)不支持该参数
 		SendMsgControl        []string               `json:"SendMsgControl,omitempty"`        // （选填）消息发送权限，NoLastMsg 只对单条消息有效，表示不更新最近联系人会话；NoUnread 不计未读，只对单条消息有效。（如果该消息 MsgOnlineOnlyFlag 设置为1，则不允许使用该字段。）
 		ForbidCallbackControl []string               `json:"ForbidCallbackControl,omitempty"` // （选填）消息回调禁止开关，只对单条消息有效
@@ -383,10 +390,10 @@ type (
 
 	// 消息信息
 	messageItem struct {
-		FromUserId string          `json:"From_Account"`     // （必填）消息来源帐号
-		MsgBody    []types.MsgBody `json:"MsgBody"`          // （必填）消息体
-		SendTime   int64           `json:"SendTime"`         // （必填）消息发送时间
-		Random     uint32          `json:"Random,omitempty"` // （选填）无符号32位整数
+		FromUserId string           `json:"From_Account"`     // （必填）消息来源帐号
+		MsgBody    []*types.MsgBody `json:"MsgBody"`          // （必填）消息体
+		SendTime   int64            `json:"SendTime"`         // （必填）消息发送时间
+		Random     uint32           `json:"Random,omitempty"` // （选填）无符号32位整数
 	}
 
 	// 导入群消息（请求）

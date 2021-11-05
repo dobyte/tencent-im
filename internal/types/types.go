@@ -90,6 +90,7 @@ type (
 
 	// MsgSoundContent 语音消息元素
 	MsgSoundContent struct {
+		UUID         string `json:"UUID"`          // （必填）语音的唯一标识，类型为 String。客户端用于索引语音的键值。无法通过该字段下载相应的语音。若需要获取该语音，请升级 IM SDK 版本至4.X。
 		Url          string `json:"Url"`           // （必填）语音下载地址，可通过该 URL 地址直接下载相应语音
 		Size         int    `json:"Size"`          // （必填）语音数据大小，单位：字节。
 		Second       int    `json:"Second"`        // （必填）语音时长，单位：秒。
@@ -98,27 +99,30 @@ type (
 
 	// MsgImageContent 图像消息元素
 	MsgImageContent struct {
-		UUID        string      `json:"UUID"`           // （必填）图片序列号。后台用于索引图片的键值。
-		ImageFormat int         `json:"ImageFormat"`    // （必填）图片格式。JPG = 1，GIF = 2，PNG = 3，BMP = 4，其他 = 255。
-		ImageInfos  []ImageInfo `json:"ImageInfoArray"` // （必填）原图、缩略图或者大图下载信息。
+		UUID        string       `json:"UUID"`           // （必填）图片序列号。后台用于索引图片的键值。
+		ImageFormat int          `json:"ImageFormat"`    // （必填）图片格式。JPG = 1，GIF = 2，PNG = 3，BMP = 4，其他 = 255。
+		ImageInfos  []*ImageInfo `json:"ImageInfoArray"` // （必填）原图、缩略图或者大图下载信息。
 	}
 
 	// MsgFileContent 文件消息元素
 	MsgFileContent struct {
 		Url          string `json:"Url"`           // （必填）文件下载地址，可通过该 URL 地址直接下载相应文件
-		Size         int    `json:"FileSize"`      // （必填）文件数据大小，单位：字节
-		Name         string `json:"FileName"`      // （必填）文件名称
+		UUID         string `json:"UUID"`          // （必填）文件的唯一标识，客户端用于索引文件的键值。
+		FileSize     int    `json:"FileSize"`      // （必填）文件数据大小，单位：字节
+		FileName     string `json:"FileName"`      // （必填）文件名称
 		DownloadFlag int    `json:"Download_Flag"` // （必填）文件下载方式标记。目前 Download_Flag 取值只能为2，表示可通过Url字段值的 URL 地址直接下载文件。
 	}
 
 	// MsgVideoContent 视频消息元素
 	MsgVideoContent struct {
+		VideoUUID         string `json:"VideoUUID"`         // （必填）视频的唯一标识，客户端用于索引视频的键值。
 		VideoUrl          string `json:"VideoUrl"`          // （必填）视频下载地址。可通过该 URL 地址直接下载相应视频
 		VideoSize         int    `json:"VideoSize"`         // （必填）视频数据大小，单位：字节
 		VideoSecond       int    `json:"VideoSecond"`       // （必填）视频时长，单位：秒
 		VideoFormat       string `json:"VideoFormat"`       // （必填）视频格式，例如 mp4
 		VideoDownloadFlag int    `json:"VideoDownloadFlag"` // （必填）视频下载方式标记。目前 VideoDownloadFlag 取值只能为2，表示可通过VideoUrl字段值的 URL 地址直接下载视频。
 		ThumbUrl          string `json:"ThumbUrl"`          // （必填）视频缩略图下载地址。可通过该 URL 地址直接下载相应视频缩略图。
+		ThumbUUID         string `json:"ThumbUUID"`         // （必填）视频缩略图的唯一标识，客户端用于索引视频缩略图的键值。
 		ThumbSize         int    `json:"ThumbSize"`         // （必填）缩略图大小，单位：字节
 		ThumbWidth        int    `json:"ThumbWidth"`        // （必填）缩略图宽度
 		ThumbHeight       int    `json:"ThumbHeight"`       // （必填）缩略图高度

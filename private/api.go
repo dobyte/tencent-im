@@ -246,12 +246,9 @@ func (a *api) FetchMessages(arg *FetchMessagesArg) (ret *FetchMessagesRet, err e
 	ret = &FetchMessagesRet{
 		LastMsgKey:  resp.LastMsgKey,
 		LastMsgTime: resp.LastMsgTime,
-		MsgCount:    resp.MsgCount,
-		MsgList:     resp.MsgList,
-	}
-
-	if resp.Complete == 1 {
-		ret.IsOver = true
+		Count:       resp.MsgCount,
+		List:        resp.MsgList,
+		HasMore:     resp.Complete != 1,
 	}
 
 	return
@@ -281,7 +278,7 @@ func (a *api) PullMessages(arg *PullMessagesArg, fn func(ret *FetchMessagesRet))
 		}
 	)
 
-	for ret == nil || !ret.IsOver {
+	for ret == nil || ret.HasMore {
 		ret, err = a.FetchMessages(req)
 		if err != nil {
 			return
@@ -289,7 +286,7 @@ func (a *api) PullMessages(arg *PullMessagesArg, fn func(ret *FetchMessagesRet))
 
 		fn(ret)
 
-		if !ret.IsOver {
+		if ret.HasMore {
 			req.LastMsgKey = ret.LastMsgKey
 			req.MaxTime = ret.LastMsgTime
 		}

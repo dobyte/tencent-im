@@ -8,7 +8,6 @@
 package account
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/dobyte/tencent-im/internal/core"
@@ -121,10 +120,10 @@ func (a *api) ImportAccount(account *Account) (err error) {
 // https://cloud.tencent.com/document/product/269/4919
 func (a *api) ImportAccounts(userIds ...string) (failUserIds []string, err error) {
 	if c := len(userIds); c == 0 {
-		err = errors.New("the account is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the userid is not set")
 		return
 	} else if c > batchImportAccountsLimit {
-		err = errors.New(fmt.Sprintf("the number of imported accounts cannot exceed %d", batchImportAccountsLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of imported accounts cannot exceed %d", batchImportAccountsLimit))
 		return
 	}
 
@@ -166,10 +165,10 @@ func (a *api) DeleteAccount(userId string) (err error) {
 // https://cloud.tencent.com/document/product/269/36443
 func (a *api) DeleteAccounts(userIds ...string) (results []*DeleteResult, err error) {
 	if c := len(userIds); c == 0 {
-		err = errors.New("the account is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the userid is not set")
 		return
 	} else if c > batchDeleteAccountsLimit {
-		err = errors.New(fmt.Sprintf("the number of deleted accounts cannot exceed %d", batchDeleteAccountsLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of deleted accounts cannot exceed %d", batchDeleteAccountsLimit))
 		return
 	}
 
@@ -219,10 +218,10 @@ func (a *api) CheckAccount(userId string) (bool, error) {
 // https://cloud.tencent.com/document/product/269/38417
 func (a *api) CheckAccounts(userIds ...string) (results []*CheckResult, err error) {
 	if c := len(userIds); c == 0 {
-		err = errors.New("the account is not set")
+		err = core.NewError(enum.InvalidParamsCode, "the account is not set")
 		return
 	} else if c > batchCheckAccountsLimit {
-		err = errors.New(fmt.Sprintf("the number of checked accounts cannot exceed %d", batchCheckAccountsLimit))
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of checked accounts cannot exceed %d", batchCheckAccountsLimit))
 		return
 	}
 

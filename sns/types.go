@@ -172,10 +172,10 @@ type (
 	FetchFriendsRet struct {
 		StandardSequence int       // 标准排序
 		CustomSequence   int       // 自定义排序
-		FriendNum        int       // 好友总数
-		IsOver           bool      // 是否没有数据了
-		NextStartIndex   int       // 分页接口下一页的起始位置
-		Friends          []*Friend // 好友列表
+		StartIndex       int       // 分页接口下一页的起始位置
+		Total            int       // 好友总数
+		HasMore          bool      // 是否还有更多数据
+		List             []*Friend // 好友列表
 	}
 
 	// 添加黑名单（请求）
@@ -215,18 +215,18 @@ type (
 	// 拉取黑名单（响应）
 	fetchBlacklistResp struct {
 		types.ActionBaseResp
-		ErrorDisplay    string      `json:"ErrorDisplay"`    // 详细的客户端展示信息
-		StartIndex      int         `json:"StartIndex"`      // 下页拉取的起始位置，0表示已拉完
-		CurrentSequence int         `json:"CurrentSequence"` // 黑名单最新的 Seq
-		Blacklists      []Blacklist `json:"BlackListItem"`   // 黑名单对象数组
+		ErrorDisplay    string       `json:"ErrorDisplay"`    // 详细的客户端展示信息
+		StartIndex      int          `json:"StartIndex"`      // 下页拉取的起始位置，0表示已拉完
+		CurrentSequence int          `json:"CurrentSequence"` // 黑名单最新的 Seq
+		Blacklists      []*Blacklist `json:"BlackListItem"`   // 黑名单对象数组
 	}
 
 	// FetchBlacklistRet 拉取黑名单结果
 	FetchBlacklistRet struct {
-		StandardSequence int         // 标准排序
-		IsOver           bool        // 是否没有数据了
-		NextStartIndex   int         // 分页接口下一页的起始位置
-		Blacklists       []Blacklist // 黑名单列表
+		StandardSequence int          // 标准排序
+		StartIndex       int          // 分页接口下一页的起始位置
+		HasMore          bool         // 是否还有数据
+		List             []*Blacklist // 黑名单列表
 	}
 
 	// Blacklist 黑名单

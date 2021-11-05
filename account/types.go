@@ -21,13 +21,13 @@ type (
 
 	// 批量导入账号（参数）
 	importAccountsReq struct {
-		UserIds []string `json:"UserIds"` // （必填）用户名，单个用户名长度不超过32字节，单次最多导入100个用户名
+		UserIds []string `json:"Accounts"` // （必填）用户名，单个用户名长度不超过32字节，单次最多导入100个用户名
 	}
 
 	// 批量导入账号（响应）
 	importAccountsResp struct {
 		types.ActionBaseResp
-		FailUserIds []string `json:"FailUserIds"` // 导入失败的帐号列表
+		FailUserIds []string `json:"FailAccounts"` // 导入失败的帐号列表
 	}
 
 	// 账号项

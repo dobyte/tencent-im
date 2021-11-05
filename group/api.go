@@ -8,6 +8,8 @@
 package group
 
 import (
+	"fmt"
+
 	"github.com/dobyte/tencent-im/internal/conv"
 	"github.com/dobyte/tencent-im/internal/core"
 	"github.com/dobyte/tencent-im/internal/enum"
@@ -40,6 +42,8 @@ const (
 	commandDeleteGroupMsgBySender      = "delete_group_msg_by_sender"
 	commandGetGroupSimpleMsg           = "group_msg_get_simple"
 	commandGetOnlineMemberNum          = "get_online_member_num"
+
+	batchGetGroupsLimit = 50 // 批量获取群组限制
 )
 
 type API interface {
@@ -54,6 +58,12 @@ type API interface {
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1614
 	FetchGroups(limit int, next int, groupTypeAndFilter ...interface{}) (ret *FetchGroupsRet, err error)
+
+	// PullGroups 续拉取App中的所有群组
+	// 本方法由“拉取App中的所有群组（FetchGroups）”拓展而来
+	// 点击查看详细文档:
+	// https://cloud.tencent.com/document/product/269/1614
+	PullGroups(arg *PullGroupsArg, fn func(ret *FetchGroupsRet)) (err error)
 
 	// CreateGroup 创建群组
 	// App 管理员可以通过该接口创建群组。
@@ -264,6 +274,11 @@ func (a *api) FetchGroupIds(limit int, next int, groupType ...GroupType) (ret *F
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1614
 func (a *api) FetchGroups(limit int, next int, groupTypeAndFilter ...interface{}) (ret *FetchGroupsRet, err error) {
+	if limit > batchGetGroupsLimit {
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of groups id cannot exceed %d", batchGetGroupsLimit))
+		return
+	}
+
 	var (
 		resp      *FetchGroupIdsRet
 		filter    *Filter
@@ -288,17 +303,41 @@ func (a *api) FetchGroups(limit int, next int, groupTypeAndFilter ...interface{}
 		return
 	}
 
+	ret = &FetchGroupsRet{Next: resp.Next, Total: resp.Total, HasMore: resp.HasMore}
+
 	if len(resp.List) > 0 {
-		var groups []*Group
-		if groups, err = a.GetGroups(resp.List, filter); err != nil {
+		if ret.List, err = a.GetGroups(resp.List, filter); err != nil {
+			return
+		}
+	}
+
+	return
+}
+
+// PullGroups 续拉取App中的所有群组
+// 本方法由“拉取App中的所有群组（FetchGroups）”拓展而来
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/1614
+func (a *api) PullGroups(arg *PullGroupsArg, fn func(ret *FetchGroupsRet)) (err error) {
+	var (
+		limit     = arg.Limit
+		groupType = arg.GroupType
+		filter    = arg.Filter
+		next      int
+		ret       *FetchGroupsRet
+	)
+
+	for ret == nil || ret.HasMore {
+		ret, err = a.FetchGroups(limit, next, groupType, filter)
+		if err != nil {
 			return
 		}
 
-		ret = &FetchGroupsRet{
-			Total:   resp.Total,
-			Next:    resp.Next,
-			HasMore: resp.HasMore,
-			List:    groups,
+		fn(ret)
+
+		if ret.HasMore {
+			next = ret.Next
+			break
 		}
 	}
 
@@ -401,74 +440,80 @@ func (a *api) GetGroup(groupId string, filter ...*Filter) (group *Group, err err
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1616
 func (a *api) GetGroups(groupIds []string, filters ...*Filter) (groups []*Group, err error) {
-	if len(groupIds) > 0 {
-		req := &getGroupsReq{GroupIds: groupIds}
-		resp := &getGroupsResp{}
+	if c := len(groupIds); c == 0 {
+		err = core.NewError(enum.InvalidParamsCode, "the group's id is not set")
+		return
+	} else if c > batchGetGroupsLimit {
+		err = core.NewError(enum.InvalidParamsCode, fmt.Sprintf("the number of group's id cannot exceed %d", batchGetGroupsLimit))
+		return
+	}
 
-		if len(filters) > 0 {
-			if filter := filters[0]; filter != nil {
-				req.ResponseFilter = &responseFilter{
-					GroupBaseInfoFilter:    filter.GetAllBaseInfoFilterFields(),
-					MemberInfoFilter:       filter.GetAllMemberInfoFilterFields(),
-					GroupCustomDataFilter:  filter.GetAllGroupCustomDataFilterFields(),
-					MemberCustomDataFilter: filter.GetAllMemberCustomDataFilterFields(),
-				}
+	req := &getGroupsReq{GroupIds: groupIds}
+	resp := &getGroupsResp{}
+
+	if len(filters) > 0 {
+		if filter := filters[0]; filter != nil {
+			req.ResponseFilter = &responseFilter{
+				GroupBaseInfoFilter:    filter.GetAllBaseInfoFilterFields(),
+				MemberInfoFilter:       filter.GetAllMemberInfoFilterFields(),
+				GroupCustomDataFilter:  filter.GetAllGroupCustomDataFilterFields(),
+				MemberCustomDataFilter: filter.GetAllMemberCustomDataFilterFields(),
 			}
 		}
+	}
 
-		if err = a.client.Post(serviceGroup, commandGetGroups, req, resp); err != nil {
-			return
-		}
+	if err = a.client.Post(serviceGroup, commandGetGroups, req, resp); err != nil {
+		return
+	}
 
-		groups = make([]*Group, 0, len(resp.GroupInfos))
-		for _, item := range resp.GroupInfos {
-			group := NewGroup()
-			group.setError(item.ErrorCode, item.ErrorInfo)
-			if group.err == nil {
-				group.id = item.GroupId
-				group.name = item.Name
-				group.types = item.Type
-				group.owner = item.OwnerUserId
-				group.avatar = item.FaceUrl
-				group.memberNum = item.MemberNum
-				group.maxMemberNum = item.MaxMemberNum
-				group.applyJoinOption = item.ApplyJoinOption
-				group.createTime = item.CreateTime
-				group.lastInfoTime = item.LastInfoTime
-				group.lastMsgTime = item.LastMsgTime
-				group.shutUpStatus = item.ShutUpAllMember
-				group.nextMsgSeq = item.NextMsgSeq
+	groups = make([]*Group, 0, len(resp.GroupInfos))
+	for _, item := range resp.GroupInfos {
+		group := NewGroup()
+		group.setError(item.ErrorCode, item.ErrorInfo)
+		if group.err == nil {
+			group.id = item.GroupId
+			group.name = item.Name
+			group.types = item.Type
+			group.owner = item.OwnerUserId
+			group.avatar = item.FaceUrl
+			group.memberNum = item.MemberNum
+			group.maxMemberNum = item.MaxMemberNum
+			group.applyJoinOption = item.ApplyJoinOption
+			group.createTime = item.CreateTime
+			group.lastInfoTime = item.LastInfoTime
+			group.lastMsgTime = item.LastMsgTime
+			group.shutUpStatus = item.ShutUpAllMember
+			group.nextMsgSeq = item.NextMsgSeq
 
-				if item.AppDefinedData != nil && len(item.AppDefinedData) > 0 {
-					for _, v := range item.AppDefinedData {
-						group.SetCustomData(v.Key, v.Value)
-					}
+			if item.AppDefinedData != nil && len(item.AppDefinedData) > 0 {
+				for _, v := range item.AppDefinedData {
+					group.SetCustomData(v.Key, v.Value)
 				}
-
-				if item.MemberList != nil && len(item.MemberList) > 0 {
-					for _, m := range item.MemberList {
-						member := &Member{
-							userId:          m.UserId,
-							role:            m.Role,
-							joinTime:        m.JoinTime,
-							nameCard:        m.NameCard,
-							msgSeq:          m.MsgSeq,
-							msgFlag:         MsgFlag(m.MsgFlag),
-							lastSendMsgTime: m.LastSendMsgTime,
-						}
-
-						if m.AppMemberDefinedData != nil && len(m.AppMemberDefinedData) > 0 {
-							for _, v := range m.AppMemberDefinedData {
-								member.SetCustomData(v.Key, v.Value)
-							}
-						}
-
-						group.AddMembers(member)
-					}
-				}
-
-				groups = append(groups, group)
 			}
+
+			if item.MemberList != nil && len(item.MemberList) > 0 {
+				for _, m := range item.MemberList {
+					member := &Member{
+						userId:          m.UserId,
+						role:            m.Role,
+						joinTime:        m.JoinTime,
+						nameCard:        m.NameCard,
+						msgSeq:          m.MsgSeq,
+						msgFlag:         MsgFlag(m.MsgFlag),
+						lastSendMsgTime: m.LastSendMsgTime,
+					}
+
+					if m.AppMemberDefinedData != nil && len(m.AppMemberDefinedData) > 0 {
+						for _, v := range m.AppMemberDefinedData {
+							member.SetCustomData(v.Key, v.Value)
+						}
+					}
+
+					group.AddMembers(member)
+				}
+			}
+
+			groups = append(groups, group)
 		}
 	}
 

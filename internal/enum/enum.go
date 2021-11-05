@@ -12,9 +12,6 @@ import (
 )
 
 const (
-	SuccessActionStatus = "OK"
-	FailActionStatus    = "FAIL"
-
 	// 消息类型
 	MsgText     = "TIMTextElem"      // 消息元素
 	MsgLocation = "TIMLocationElem"  // 地理位置消息元素
