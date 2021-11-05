@@ -1016,8 +1016,8 @@ func TestIm_Private_GetUnreadMessageNum(t *testing.T) {
 // 创建群组
 func TestIm_Group_CreateGroup(t *testing.T) {
 	g := group.NewGroup()
-	g.SetName("测试群1")
-	g.SetType(group.TypeLiveRoom)
+	g.SetName("测试群2")
+	g.SetGroupType(group.TypePrivate)
 	g.SetMaxMemberNum(30)
 	g.SetAvatar("http://www.baidu.com")
 	g.SetGroupId("test_group2")
@@ -1040,7 +1040,7 @@ func TestIm_Group_CreateGroup(t *testing.T) {
 
 // 解散单个群
 func TestIm_Group_DestroyGroup(t *testing.T) {
-	err := NewIM().Group().DestroyGroup("test_group1")
+	err := NewIM().Group().DestroyGroup("test_group2")
 	if err != nil {
 		handleError(t, "group.DestroyGroup", err)
 	}
@@ -1050,15 +1050,15 @@ func TestIm_Group_DestroyGroup(t *testing.T) {
 
 // 获取单个群详细资料
 func TestIm_Group_GetGroup(t *testing.T) {
-	g, err := NewIM().Group().GetGroup("test_group1")
+	g, err := NewIM().Group().GetGroup("test_group2")
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.GetGroup", err)
 	}
 
 	if g != nil {
 		t.Log(g.GetGroupId())
 		t.Log(g.GetName())
-		t.Log(g.GetType())
+		t.Log(g.GetGroupType())
 		t.Log(g.GetOwner())
 		t.Log(g.GetAvatar())
 	}
@@ -1067,10 +1067,10 @@ func TestIm_Group_GetGroup(t *testing.T) {
 // 获取多个群详细资料
 func TestIm_Group_GetGroups(t *testing.T) {
 	groups, err := NewIM().Group().GetGroups([]string{
-		"test_group1",
+		"test_group2",
 	})
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.GetGroups", err)
 	}
 
 	for _, g := range groups {
@@ -1079,7 +1079,7 @@ func TestIm_Group_GetGroups(t *testing.T) {
 		} else {
 			t.Log(g.GetGroupId())
 			t.Log(g.GetName())
-			t.Log(g.GetType())
+			t.Log(g.GetGroupType())
 			t.Log(g.GetOwner())
 			t.Log(g.GetAvatar())
 		}
@@ -1088,12 +1088,12 @@ func TestIm_Group_GetGroups(t *testing.T) {
 
 // 添加群成员
 func TestIm_Group_AddGroupMembers(t *testing.T) {
-	results, err := NewIM().Group().AddMembers("test_group1", []string{
+	results, err := NewIM().Group().AddMembers("test_group2", []string{
 		test1,
 		test2,
 	}, true)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.AddMembers", err)
 	}
 
 	t.Log(results)
@@ -1101,13 +1101,13 @@ func TestIm_Group_AddGroupMembers(t *testing.T) {
 
 // 删除群成员
 func TestIm_Group_DeleteGroupMembers(t *testing.T) {
-	err := NewIM().Group().DeleteMembers("test_group1", []string{
+	err := NewIM().Group().DeleteMembers("test_group2", []string{
 		test1,
 		test2,
 		test3,
 	}, "测试删除", true)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.DeleteMembers", err)
 	}
 
 	t.Log("Success")
@@ -1115,9 +1115,9 @@ func TestIm_Group_DeleteGroupMembers(t *testing.T) {
 
 // 转让群组
 func TestIm_Group_ChangeGroupOwner(t *testing.T) {
-	err := NewIM().Group().ChangeGroupOwner("test_group1", test1)
+	err := NewIM().Group().ChangeGroupOwner("test_group2", test1)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.ChangeGroupOwner", err)
 	}
 
 	t.Log("Success")
@@ -1127,16 +1127,16 @@ func TestIm_Group_ChangeGroupOwner(t *testing.T) {
 func TestIm_Group_UpdateGroup(t *testing.T) {
 	g := group.NewGroup()
 	g.SetName("测试群1")
-	g.SetType(group.TypePublic)
+	g.SetGroupType(group.TypePublic)
 	g.SetMaxMemberNum(30)
 	g.SetAvatar("http://www.baidu.com")
-	g.SetGroupId("test_group1")
+	g.SetGroupId("test_group2")
 	g.SetIntroduction("这是一个测试群")
 	g.SetNotification("这是一个测试群公告")
 
 	err := NewIM().Group().UpdateGroup(g)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.UpdateGroup", err)
 	}
 
 	t.Log("Success")
@@ -1144,13 +1144,13 @@ func TestIm_Group_UpdateGroup(t *testing.T) {
 
 // 查询用户在群组中的身份
 func TestIm_Group_GetRolesInGroup(t *testing.T) {
-	ret, err := NewIM().Group().GetRolesInGroup("test_group1", []string{
+	ret, err := NewIM().Group().GetRolesInGroup("test_group2", []string{
 		test1,
 		test2,
 		test3,
 	})
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.GetRolesInGroup", err)
 	}
 
 	t.Log(ret)
@@ -1160,7 +1160,7 @@ func TestIm_Group_GetRolesInGroup(t *testing.T) {
 func TestIm_Group_FetchGroupMembers(t *testing.T) {
 	ret, err := NewIM().Group().FetchMembers("test_group1", 3, 2)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.FetchMembers", err)
 	}
 
 	t.Log(ret.HasMore)
@@ -1168,6 +1168,24 @@ func TestIm_Group_FetchGroupMembers(t *testing.T) {
 
 	for _, member := range ret.List {
 		t.Log(member.GetUserId())
+	}
+}
+
+// 拉取群成员详细资料
+func TestIm_Group_PullGroupMembers(t *testing.T) {
+	err := NewIM().Group().PullMembers(&group.PullMembersArg{
+		GroupId: "test_group2",
+		Limit:   3,
+	}, func(ret *group.FetchMembersRet) {
+		t.Log(ret.HasMore)
+		t.Log(ret.Total)
+
+		for _, member := range ret.List {
+			t.Log(member.GetUserId())
+		}
+	})
+	if err != nil {
+		handleError(t, "group.PullMembers", err)
 	}
 }
 
@@ -1229,9 +1247,9 @@ func TestIm_Group_UpdateGroupMember(t *testing.T) {
 	member.SetNameCard("这是一个测试名片信息")
 	member.SetMsgFlag(group.MsgFlagAcceptAndNotify)
 
-	err := NewIM().Group().UpdateMember("test_group1", member)
+	err := NewIM().Group().UpdateMember("test_group2", member)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.UpdateMember", err)
 	}
 
 	t.Log("Success")
@@ -1239,20 +1257,37 @@ func TestIm_Group_UpdateGroupMember(t *testing.T) {
 
 // 拉取用户所加入的群组
 func TestIm_Group_FetchMemberGroups(t *testing.T) {
-	ret, err := NewIM().Group().FetchMemberGroups(group.FetchMemberGroupsArg{
+	ret, err := NewIM().Group().FetchMemberGroups(&group.FetchMemberGroupsArg{
 		UserId:               test1,
 		Limit:                3,
-		Offset:               2,
+		Offset:               0,
 		IsWithLiveRoomGroups: true,
 		IsWithNoActiveGroups: true,
 	})
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.FetchMemberGroups", err)
 	}
 
 	t.Log(ret.Total)
 	t.Log(ret.HasMore)
 	t.Log(ret.List)
+}
+
+// 续拉取用户所加入的群组
+func TestIm_Group_PullMemberGroups(t *testing.T) {
+	err := NewIM().Group().PullMemberGroups(&group.PullMemberGroupsArg{
+		UserId:               test1,
+		Limit:                3,
+		IsWithLiveRoomGroups: true,
+		IsWithNoActiveGroups: true,
+	}, func(ret *group.FetchMemberGroupsRet) {
+		t.Log(ret.Total)
+		t.Log(ret.HasMore)
+		t.Log(ret.List)
+	})
+	if err != nil {
+		handleError(t, "group.PullMemberGroups", err)
+	}
 }
 
 // 批量禁言
@@ -1261,7 +1296,7 @@ func TestIm_Group_ForbidSendMessage(t *testing.T) {
 		test1,
 	}, 1000)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.ForbidSendMessage", err)
 	}
 
 	t.Log("Success")
@@ -1269,7 +1304,7 @@ func TestIm_Group_ForbidSendMessage(t *testing.T) {
 
 // 取消禁言
 func TestIm_Group_AllowSendMessage(t *testing.T) {
-	err := NewIM().Group().AllowSendMessage("test_group1", []string{
+	err := NewIM().Group().AllowSendMessage("test_group2", []string{
 		test1,
 		test2,
 	})
@@ -1282,9 +1317,9 @@ func TestIm_Group_AllowSendMessage(t *testing.T) {
 
 // 获取被禁言群成员列表
 func TestIm_Group_GetShuttedUpMembers(t *testing.T) {
-	shuttedUps, err := NewIM().Group().GetShuttedUpMembers("test_group1")
+	shuttedUps, err := NewIM().Group().GetShuttedUpMembers("test_group2")
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.GetShuttedUpMembers", err)
 	}
 
 	t.Log(shuttedUps)
@@ -1292,9 +1327,9 @@ func TestIm_Group_GetShuttedUpMembers(t *testing.T) {
 
 // 撤回单条群消息
 func TestIm_Group_RevokeMessage(t *testing.T) {
-	err := NewIM().Group().RevokeMessage("test_group1", 100)
+	err := NewIM().Group().RevokeMessage("test_group2", 100)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.RevokeMessage", err)
 	}
 
 	t.Log("Success")
@@ -1302,9 +1337,9 @@ func TestIm_Group_RevokeMessage(t *testing.T) {
 
 // 撤回多条群消息
 func TestIm_Group_RevokeMessages(t *testing.T) {
-	results, err := NewIM().Group().RevokeMessages("test_group1", 100)
+	results, err := NewIM().Group().RevokeMessages("test_group2", 100)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.RevokeMessages", err)
 	}
 
 	t.Log(results)
@@ -1312,9 +1347,9 @@ func TestIm_Group_RevokeMessages(t *testing.T) {
 
 // 设置成员未读消息计数
 func TestIm_Group_SetMemberUnreadMsgNum(t *testing.T) {
-	err := NewIM().Group().SetMemberUnreadMsgNum("test_group1", test1, 100)
+	err := NewIM().Group().SetMemberUnreadMsgNum("test_group2", test1, 100)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.SetMemberUnreadMsgNum", err)
 	}
 
 	t.Log("Success")
@@ -1322,9 +1357,9 @@ func TestIm_Group_SetMemberUnreadMsgNum(t *testing.T) {
 
 // 撤回指定用户发送的消息
 func TestIm_Group_RevokeMemberMessages(t *testing.T) {
-	err := NewIM().Group().RevokeMemberMessages("test_group1", test1)
+	err := NewIM().Group().RevokeMemberMessages("test_group2", test1)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.RevokeMemberMessages", err)
 	}
 
 	t.Log("Success")
@@ -1352,9 +1387,9 @@ func TestIm_Group_SendMessage(t *testing.T) {
 	message.AtMembers(test2)
 	message.ClearAtMembers()
 
-	ret, err := NewIM().Group().SendMessage("test_group1", message)
+	ret, err := NewIM().Group().SendMessage("test_group2", message)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.SendMessage", err)
 	}
 
 	t.Log(ret.MsgSeq)
@@ -1363,9 +1398,9 @@ func TestIm_Group_SendMessage(t *testing.T) {
 
 // 在群组中发送普通消息
 func TestIm_Group_SendNotification(t *testing.T) {
-	err := NewIM().Group().SendNotification("test_group1", "Hello welcome to the test group", test1)
+	err := NewIM().Group().SendNotification("test_group2", "Hello welcome to the test group", test1)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.SendNotification", err)
 	}
 
 	t.Log("Success")
@@ -1375,7 +1410,7 @@ func TestIm_Group_SendNotification(t *testing.T) {
 func TestIm_Group_ImportGroup(t *testing.T) {
 	g := group.NewGroup()
 	g.SetName("测试群1")
-	g.SetType(group.TypePublic)
+	g.SetGroupType(group.TypePublic)
 	g.SetMaxMemberNum(30)
 	g.SetAvatar("http://www.baidu.com")
 	g.SetIntroduction("这是一个测试群")
@@ -1383,7 +1418,7 @@ func TestIm_Group_ImportGroup(t *testing.T) {
 
 	groupId, err := NewIM().Group().ImportGroup(g)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.ImportGroup", err)
 	}
 
 	t.Log(groupId)
@@ -1399,9 +1434,9 @@ func TestIm_Group_ImportMessages(t *testing.T) {
 		Text: "Hello world",
 	})
 
-	results, err := NewIM().Group().ImportMessages("test_group1", message)
+	results, err := NewIM().Group().ImportMessages("test_group2", message)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.ImportMessages", err)
 	}
 
 	t.Log(results)
@@ -1419,9 +1454,9 @@ func TestIm_Group_ImportMembers(t *testing.T) {
 		members = append(members, member)
 	}
 
-	results, err := NewIM().Group().ImportMembers("@TGS#25J4AWNHA", members...)
+	results, err := NewIM().Group().ImportMembers("test_group2", members...)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.ImportMembers", err)
 	}
 
 	t.Log(results)
@@ -1429,12 +1464,22 @@ func TestIm_Group_ImportMembers(t *testing.T) {
 
 // 拉取群历史消息
 func TestIm_Group_FetchMessages(t *testing.T) {
-	ret, err := NewIM().Group().FetchMessages("test_group1", 5)
+	ret, err := NewIM().Group().FetchMessages("test_group2", 5)
 	if err != nil {
-		t.Fatal(err)
+		handleError(t, "group.FetchMessages", err)
 	}
 
 	t.Log(ret)
+}
+
+// 续拉取群历史消息
+func TestIm_Group_PullMessages(t *testing.T) {
+	err := NewIM().Group().PullMessages("test_group2", 5, func(ret *group.FetchMessagesRet) {
+		t.Log(ret)
+	})
+	if err != nil {
+		handleError(t, "group.PullMessages", err)
+	}
 }
 
 // 拉取会话列表

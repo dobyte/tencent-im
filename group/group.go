@@ -52,7 +52,7 @@ type Group struct {
 	err             error
 	id              string                 // 群ID
 	name            string                 // 群名称
-	types           string                 // 群类型
+	groupType       GroupType              // 群类型
 	owner           string                 // 群主ID
 	introduction    string                 // 群简介
 	notification    string                 // 群公告
@@ -107,14 +107,14 @@ func (g *Group) GetName() string {
 	return g.name
 }
 
-// SetType 设置群类型
-func (g *Group) SetType(types GroupType) {
-	g.types = string(types)
+// SetGroupType 设置群类型
+func (g *Group) SetGroupType(groupType GroupType) {
+	g.groupType = groupType
 }
 
-// GetType 获取群类型
-func (g *Group) GetType() GroupType {
-	return GroupType(g.types)
+// GetGroupType 获取群类型
+func (g *Group) GetGroupType() GroupType {
+	return g.groupType
 }
 
 // SetIntroduction 设置群简介
@@ -351,11 +351,11 @@ func (g *Group) checkNameArgError() error {
 
 // 检测群类型参数错误
 func (g *Group) checkTypeArgError() error {
-	if g.types == "" {
+	if g.groupType == "" {
 		return errNotSetGroupType
 	}
 
-	switch GroupType(g.types) {
+	switch GroupType(g.groupType) {
 	case TypePublic, TypePrivate, TypeChatRoom, TypeLiveRoom:
 	default:
 		return errInvalidGroupType

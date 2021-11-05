@@ -89,6 +89,13 @@ type API interface {
 	// https://cloud.tencent.com/document/product/269/1617
 	FetchMembers(groupId string, limit, offset int, filter ...*Filter) (ret *FetchMembersRet, err error)
 
+	// PullMembers 续拉取群成员详细资料
+	// 本方法由“拉取群成员详细资料（FetchMembers）”拓展而来
+	// App管理员可以根据群组ID获取群组成员的资料。
+	// 点击查看详细文档:
+	// https://cloud.tencent.com/document/product/269/1617
+	PullMembers(arg *PullMembersArg, fn func(ret *FetchMembersRet)) (err error)
+
 	// UpdateGroup 修改群基础资料
 	// App管理员可以通过该接口修改指定群组的基础信息。
 	// 点击查看详细文档:
@@ -123,7 +130,14 @@ type API interface {
 	// App管理员可以通过本接口获取某一用户加入的群信息。默认不获取用户已加入但未激活好友工作群（Work）以及直播群（AVChatRoom）群信息。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1625
-	FetchMemberGroups(arg FetchMemberGroupsArg) (ret *FetchMemberGroupsRet, err error)
+	FetchMemberGroups(arg *FetchMemberGroupsArg) (ret *FetchMemberGroupsRet, err error)
+
+	// PullMemberGroups 续拉取用户所加入的群组
+	// 本方法由“拉取用户所加入的群组（FetchMemberGroups）”拓展而来
+	// App管理员可以通过本接口获取某一用户加入的群信息。默认不获取用户已加入但未激活好友工作群（Work）以及直播群（AVChatRoom）群信息。
+	// 点击查看详细文档:
+	// https://cloud.tencent.com/document/product/269/1625
+	PullMemberGroups(arg *PullMemberGroupsArg, fn func(ret *FetchMemberGroupsRet)) (err error)
 
 	// GetRolesInGroup 查询用户在群组中的身份
 	// App管理员可以通过该接口获取一批用户在群内的身份，即“成员角色”。
@@ -223,6 +237,15 @@ type API interface {
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/2738
 	FetchMessages(groupId string, limit int, msgSeq ...int) (ret *FetchMessagesRet, err error)
+
+	// PullMessages 续拉取群历史消息
+	// 本方法由“拉取群历史消息（FetchMessages）”拓展而来
+	// 即时通信 IM 的群消息是按 Seq 排序的，按照 server 收到群消息的顺序分配 Seq，先发的群消息 Seq 小，后发的 Seq 大。
+	// 如果用户想拉取一个群的全量消息，首次拉取时不用填拉取 Seq，Server 会自动返回最新的消息，以后拉取时拉取 Seq 填上次返回的最小 Seq 减1。
+	// 如果返回消息的 IsPlaceMsg 为1，表示这个 Seq 的消息或者过期、或者存储失败、或者被删除了。
+	// 点击查看详细文档:
+	// https://cloud.tencent.com/document/product/269/2738
+	PullMessages(groupId string, limit int, fn func(ret *FetchMessagesRet)) (err error)
 
 	// GetOnlineMemberNum 获取直播群在线人数
 	// App 管理员可以根据群组 ID 获取直播群在线人数。
@@ -356,7 +379,7 @@ func (a *api) CreateGroup(group *Group) (groupId string, err error) {
 	req := &createGroupReq{}
 	req.GroupId = group.id
 	req.OwnerUserId = group.owner
-	req.Type = group.types
+	req.GroupType = group.groupType
 	req.Name = group.name
 	req.FaceUrl = group.avatar
 	req.Introduction = group.introduction
@@ -374,8 +397,8 @@ func (a *api) CreateGroup(group *Group) (groupId string, err error) {
 		}
 	}
 
-	if len(group.members) > 0 {
-		req.MemberList = make([]*memberItem, 0, len(group.members))
+	if c := len(group.members); c > 0 {
+		req.MemberList = make([]*memberItem, 0, c)
 
 		var item *memberItem
 		for _, member := range group.members {
@@ -424,7 +447,7 @@ func (a *api) GetGroup(groupId string, filter ...*Filter) (group *Group, err err
 		return
 	}
 
-	if groups != nil && len(groups) > 0 {
+	if len(groups) > 0 {
 		if err = groups[0].err; err != nil {
 			return
 		}
@@ -473,7 +496,7 @@ func (a *api) GetGroups(groupIds []string, filters ...*Filter) (groups []*Group,
 		if group.err == nil {
 			group.id = item.GroupId
 			group.name = item.Name
-			group.types = item.Type
+			group.groupType = item.GroupType
 			group.owner = item.OwnerUserId
 			group.avatar = item.FaceUrl
 			group.memberNum = item.MemberNum
@@ -525,10 +548,7 @@ func (a *api) GetGroups(groupIds []string, filters ...*Filter) (groups []*Group,
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1617
 func (a *api) FetchMembers(groupId string, limit, offset int, filters ...*Filter) (ret *FetchMembersRet, err error) {
-	req := &fetchMembersReq{}
-	req.GroupId = groupId
-	req.Limit = limit
-	req.Offset = offset
+	req := &fetchMembersReq{GroupId: groupId, Limit: limit, Offset: offset}
 
 	if len(filters) > 0 {
 		if filter := filters[0]; filter != nil {
@@ -547,7 +567,7 @@ func (a *api) FetchMembers(groupId string, limit, offset int, filters ...*Filter
 	ret = &FetchMembersRet{}
 	ret.Total = resp.MemberNum
 	ret.List = make([]*Member, 0, len(resp.MemberList))
-	ret.HasMore = resp.MemberNum > limit*(offset+1)
+	ret.HasMore = resp.MemberNum > limit+offset
 
 	for _, m := range resp.MemberList {
 		member := &Member{
@@ -567,6 +587,33 @@ func (a *api) FetchMembers(groupId string, limit, offset int, filters ...*Filter
 		}
 
 		ret.List = append(ret.List, member)
+	}
+
+	return
+}
+
+// PullMembers 续拉取群成员详细资料
+// 本方法由“拉取群成员详细资料（FetchMembers）”拓展而来
+// App管理员可以根据群组ID获取群组成员的资料。
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/1617
+func (a *api) PullMembers(arg *PullMembersArg, fn func(ret *FetchMembersRet)) (err error) {
+	var (
+		offset int
+		ret    *FetchMembersRet
+	)
+
+	for ret == nil || ret.HasMore {
+		ret, err = a.FetchMembers(arg.GroupId, arg.Limit, offset, arg.Filter)
+		if err != nil {
+			return
+		}
+
+		fn(ret)
+
+		if ret.HasMore {
+			offset += arg.Limit
+		}
 	}
 
 	return
@@ -721,12 +768,8 @@ func (a *api) DestroyGroup(groupId string) (err error) {
 // App管理员可以通过本接口获取某一用户加入的群信息。默认不获取用户已加入但未激活好友工作群（Work）以及直播群（AVChatRoom）群信息。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1625
-func (a *api) FetchMemberGroups(arg FetchMemberGroupsArg) (ret *FetchMemberGroupsRet, err error) {
-	req := &fetchMemberGroupsReq{}
-	req.UserId = arg.UserId
-	req.Limit = arg.Limit
-	req.Offset = arg.Offset
-	req.GroupType = string(arg.GroupType)
+func (a *api) FetchMemberGroups(arg *FetchMemberGroupsArg) (ret *FetchMemberGroupsRet, err error) {
+	req := &fetchMemberGroupsReq{UserId: arg.UserId, Limit: arg.Limit, Offset: arg.Offset, GroupType: arg.GroupType}
 
 	if arg.Filter != nil {
 		req.ResponseFilter = &responseFilter{
@@ -756,14 +799,14 @@ func (a *api) FetchMemberGroups(arg FetchMemberGroupsArg) (ret *FetchMemberGroup
 	if arg.Limit == 0 {
 		ret.HasMore = false
 	} else {
-		ret.HasMore = arg.Limit*(1+arg.Offset) < resp.TotalCount
+		ret.HasMore = arg.Limit+arg.Offset < resp.TotalCount
 	}
 
 	for _, item := range resp.GroupList {
 		group := NewGroup()
 		group.id = item.GroupId
 		group.name = item.Name
-		group.types = item.Type
+		group.groupType = item.GroupType
 		group.owner = item.OwnerUserId
 		group.avatar = item.FaceUrl
 		group.memberNum = item.MemberNum
@@ -807,21 +850,55 @@ func (a *api) FetchMemberGroups(arg FetchMemberGroupsArg) (ret *FetchMemberGroup
 	return
 }
 
+// PullMemberGroups 续拉取用户所加入的群组
+// 本方法由“拉取用户所加入的群组（FetchMemberGroups）”拓展而来
+// App管理员可以通过本接口获取某一用户加入的群信息。默认不获取用户已加入但未激活好友工作群（Work）以及直播群（AVChatRoom）群信息。
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/1625
+func (a *api) PullMemberGroups(arg *PullMemberGroupsArg, fn func(ret *FetchMemberGroupsRet)) (err error) {
+	var (
+		ret *FetchMemberGroupsRet
+		req = &FetchMemberGroupsArg{
+			UserId:               arg.UserId,
+			Limit:                arg.Limit,
+			GroupType:            arg.GroupType,
+			Filter:               arg.Filter,
+			IsWithNoActiveGroups: arg.IsWithNoActiveGroups,
+			IsWithLiveRoomGroups: arg.IsWithLiveRoomGroups,
+		}
+	)
+
+	for ret == nil || ret.HasMore {
+		ret, err = a.FetchMemberGroups(req)
+		if err != nil {
+			return
+		}
+
+		fn(ret)
+
+		if ret.HasMore {
+			req.Offset += arg.Limit
+		}
+	}
+
+	return
+}
+
 // GetRolesInGroup 查询用户在群组中的身份
 // App管理员可以通过该接口获取一批用户在群内的身份，即“成员角色”。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1626
-func (a *api) GetRolesInGroup(groupId string, userIds []string) (memberRoles map[string]string, err error) {
-	req := getRolesInGroupReq{GroupId: groupId, UserIds: userIds}
+func (a *api) GetRolesInGroup(groupId string, userIds []string) (roles map[string]string, err error) {
+	req := &getRolesInGroupReq{GroupId: groupId, UserIds: userIds}
 	resp := &getRolesInGroupResp{}
 
 	if err = a.client.Post(serviceGroup, commandGetRoleInGroup, req, resp); err != nil {
 		return
 	}
 
-	memberRoles = make(map[string]string)
+	roles = make(map[string]string, len(resp.MemberRoleList))
 	for _, item := range resp.MemberRoleList {
-		memberRoles[item.UserId] = item.Role
+		roles[item.UserId] = item.Role
 	}
 
 	return
@@ -834,7 +911,7 @@ func (a *api) GetRolesInGroup(groupId string, userIds []string) (memberRoles map
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1627
 func (a *api) ForbidSendMessage(groupId string, userIds []string, shutUpTime int64) (err error) {
-	req := forbidSendMessageReq{
+	req := &forbidSendMessageReq{
 		GroupId:    groupId,
 		UserIds:    userIds,
 		ShutUpTime: shutUpTime,
@@ -860,7 +937,7 @@ func (a *api) AllowSendMessage(groupId string, userIds []string) (err error) {
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/2925
 func (a *api) GetShuttedUpMembers(groupId string) (shuttedUps map[string]int64, err error) {
-	req := getShuttedUpMembersReq{GroupId: groupId}
+	req := &getShuttedUpMembersReq{GroupId: groupId}
 	resp := &getShuttedUpMembersResp{}
 
 	if err = a.client.Post(serviceGroup, commandGetGroupShuttedUin, req, resp); err != nil {
@@ -884,7 +961,7 @@ func (a *api) SendMessage(groupId string, message *Message) (ret *SendMessageRet
 		return
 	}
 
-	req := sendMessageReq{}
+	req := &sendMessageReq{}
 	req.GroupId = groupId
 	req.FromUserId = message.GetSender()
 	req.OfflinePushInfo = message.GetOfflinePushInfo()
@@ -931,8 +1008,8 @@ func (a *api) SendMessage(groupId string, message *Message) (ret *SendMessageRet
 // App 管理员可以通过该接口在群组中发送系统通知。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1630
-func (a *api) SendNotification(groupId, content string, userId ...string) (err error) {
-	req := sendNotificationReq{GroupId: groupId, Content: content, UserIds: userId}
+func (a *api) SendNotification(groupId, content string, userIds ...string) (err error) {
+	req := &sendNotificationReq{GroupId: groupId, Content: content, UserIds: userIds}
 
 	if err = a.client.Post(serviceGroup, commandSendGroupSystemNotification, req, &types.ActionBaseResp{}); err != nil {
 		return
@@ -948,7 +1025,7 @@ func (a *api) SendNotification(groupId, content string, userId ...string) (err e
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1633
 func (a *api) ChangeGroupOwner(groupId, userId string) (err error) {
-	req := changeGroupOwnerReq{GroupId: groupId, OwnerUserId: userId}
+	req := &changeGroupOwnerReq{GroupId: groupId, OwnerUserId: userId}
 
 	if err = a.client.Post(serviceGroup, commandChangeGroupOwner, req, &types.ActionBaseResp{}); err != nil {
 		return
@@ -1013,10 +1090,10 @@ func (a *api) ImportGroup(group *Group) (groupId string, err error) {
 		return
 	}
 
-	req := importGroupReq{}
+	req := &importGroupReq{}
 	req.GroupId = group.id
 	req.OwnerUserId = group.owner
-	req.Type = group.types
+	req.GroupType = group.groupType
 	req.Name = group.name
 	req.FaceUrl = group.avatar
 	req.Introduction = group.introduction
@@ -1026,9 +1103,9 @@ func (a *api) ImportGroup(group *Group) (groupId string, err error) {
 	req.CreateTime = group.createTime
 
 	if data := group.GetAllCustomData(); data != nil {
-		req.AppDefinedData = make([]customDataItem, 0, len(data))
+		req.AppDefinedData = make([]*customDataItem, 0, len(data))
 		for key, val := range data {
-			req.AppDefinedData = append(req.AppDefinedData, customDataItem{
+			req.AppDefinedData = append(req.AppDefinedData, &customDataItem{
 				Key:   key,
 				Value: val,
 			})
@@ -1185,6 +1262,35 @@ func (a *api) FetchMessages(groupId string, limit int, msgSeq ...int) (ret *Fetc
 			message.priority = MsgPriorityLow
 		case 4:
 			message.priority = MsgPriorityLowest
+		}
+	}
+
+	return
+}
+
+// PullMessages 续拉取群历史消息
+// 本方法由“拉取群历史消息（FetchMessages）”拓展而来
+// 即时通信 IM 的群消息是按 Seq 排序的，按照 server 收到群消息的顺序分配 Seq，先发的群消息 Seq 小，后发的 Seq 大。
+// 如果用户想拉取一个群的全量消息，首次拉取时不用填拉取 Seq，Server 会自动返回最新的消息，以后拉取时拉取 Seq 填上次返回的最小 Seq 减1。
+// 如果返回消息的 IsPlaceMsg 为1，表示这个 Seq 的消息或者过期、或者存储失败、或者被删除了。
+// 点击查看详细文档:
+// https://cloud.tencent.com/document/product/269/2738
+func (a *api) PullMessages(groupId string, limit int, fn func(ret *FetchMessagesRet)) (err error) {
+	var (
+		ret    *FetchMessagesRet
+		msgSeq int
+	)
+
+	for ret == nil || ret.HasMore {
+		ret, err = a.FetchMessages(groupId, limit, msgSeq)
+		if err != nil {
+			return
+		}
+
+		fn(ret)
+
+		if ret.HasMore {
+			msgSeq = ret.NextSeq
 		}
 	}
 

@@ -669,7 +669,7 @@ func main() {
         <td>√</td>
     </tr>
     <tr>
-        <td rowspan="29">群组管理</td>
+        <td rowspan="32">群组管理</td>
         <td>
             <a href="https://cloud.tencent.com/document/product/269/1614">拉取App中的所有群组ID</a>
         </td>
@@ -727,6 +727,14 @@ func main() {
     </tr>
     <tr>
         <td>
+            <a href="https://cloud.tencent.com/document/product/269/1617">拉取群成员详细资料</a>
+        </td>
+        <td>Group.PullMembers</td>
+        <td>本方法由“拉取群成员详细资料（FetchMembers）”拓展而来</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
             <a href="https://cloud.tencent.com/document/product/269/1620">修改群基础资料</a>
         </td>
         <td>Group.UpdateGroup</td>
@@ -771,6 +779,14 @@ func main() {
         </td>
         <td>Group.FetchMemberGroups</td>
         <td>App管理员可以通过本接口获取某一用户加入的群信息。默认不获取用户已加入但未激活好友工作群（Work）以及直播群（AVChatRoom）群信息。</td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/1625">拉取用户所加入的群组</a>
+        </td>
+        <td>Group.PullMemberGroups</td>
+        <td>本方法由“拉取用户所加入的群组（FetchMemberGroups）”拓展而来</td>
         <td>√</td>
     </tr>
     <tr>
@@ -924,6 +940,14 @@ func main() {
                 <li>如果返回消息的 IsPlaceMsg 为1，表示这个 Seq 的消息或者过期、或者存储失败、或者被删除了。</li>
             </ul>
         </td>
+        <td>√</td>
+    </tr>
+    <tr>
+        <td>
+            <a href="https://cloud.tencent.com/document/product/269/2738">续拉取群历史消息</a>
+        </td>
+        <td>Group.PullMessages</td>
+        <td>本方法由“拉取群历史消息（FetchMessages）”拓展而来</td>
         <td>√</td>
     </tr>
     <tr>
