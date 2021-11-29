@@ -29,7 +29,7 @@ type Error = core.Error
 type (
 	IM interface {
 		// GetUserSig 获取UserSig签名
-		GetUserSig() UserSig
+		GetUserSig(userId string, expiration ...int) UserSig
 		// SNS 获取关系链管理接口
 		SNS() sns.API
 		// Mute 获取全局禁言管理接口
@@ -53,10 +53,10 @@ type (
 	}
 
 	Options struct {
-		AppId     int    // 应用SDKAppID，可在即时通信 IM 控制台 的应用卡片中获取。
-		AppSecret string // 密钥信息，可在即时通信 IM 控制台 的应用详情页面中获取，具体操作请参见 获取密钥
-		UserId    string // 用户ID
-		Expire    int    // UserSig过期时间
+		AppId      int    // 应用SDKAppID，可在即时通信 IM 控制台 的应用卡片中获取。
+		AppSecret  string // 密钥信息，可在即时通信 IM 控制台 的应用详情页面中获取，具体操作请参见 获取密钥
+		UserId     string // 用户ID
+		Expiration int    // UserSig过期时间
 	}
 
 	UserSig struct {
@@ -72,17 +72,21 @@ type (
 
 func NewIM(opt *Options) IM {
 	return &im{opt: opt, client: core.NewClient(&core.Options{
-		AppId:     opt.AppId,
-		AppSecret: opt.AppSecret,
-		UserId:    opt.UserId,
-		Expire:    opt.Expire,
+		AppId:      opt.AppId,
+		AppSecret:  opt.AppSecret,
+		UserId:     opt.UserId,
+		Expiration: opt.Expiration,
 	})}
 }
 
 // GetUserSig 获取UserSig签名
-func (i *im) GetUserSig() UserSig {
-	userSig, _ := sign.GenUserSig(i.opt.AppId, i.opt.AppSecret, i.opt.UserId, i.opt.Expire)
-	expireAt := time.Now().Add(time.Duration(i.opt.Expire) * time.Second).Unix()
+func (i *im) GetUserSig(userId string, expiration ...int) UserSig {
+	if len(expiration) == 0 {
+		expiration = append(expiration, i.opt.Expiration)
+	}
+
+	userSig, _ := sign.GenUserSig(i.opt.AppId, i.opt.AppSecret, userId, expiration[0])
+	expireAt := time.Now().Add(time.Duration(i.opt.Expiration) * time.Second).Unix()
 	return UserSig{UserSig: userSig, ExpireAt: expireAt}
 }
 

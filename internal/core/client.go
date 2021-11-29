@@ -23,7 +23,7 @@ const (
 	defaultBaseUrl     = "https://console.tim.qq.com"
 	defaultVersion     = "v4"
 	defaultContentType = "json"
-	defaultExpire      = 3600
+	defaultExpiration  = 3600
 )
 
 var invalidResponse = NewError(enum.InvalidResponseCode, "invalid response")
@@ -49,10 +49,10 @@ type client struct {
 }
 
 type Options struct {
-	AppId     int    // 应用SDKAppID，可在即时通信 IM 控制台 的应用卡片中获取。
-	AppSecret string // 密钥信息，可在即时通信 IM 控制台 的应用详情页面中获取，具体操作请参见 获取密钥
-	UserId    string // 用户ID
-	Expire    int    // UserSig过期时间
+	AppId      int    // 应用SDKAppID，可在即时通信 IM 控制台 的应用卡片中获取。
+	AppSecret  string // 密钥信息，可在即时通信 IM 控制台 的应用详情页面中获取，具体操作请参见 获取密钥
+	UserId     string // 用户ID
+	Expiration int    // UserSig过期时间
 }
 
 func NewClient(opt *Options) Client {
@@ -131,15 +131,15 @@ func (c *client) buildUrl(serviceName string, command string) string {
 
 // getUserSig 获取签名
 func (c *client) getUserSig() string {
-	now, expire := time.Now(), c.opt.Expire
+	now, expiration := time.Now(), c.opt.Expiration
 
-	if expire <= 0 {
-		expire = defaultExpire
+	if expiration <= 0 {
+		expiration = defaultExpiration
 	}
 
 	if c.userSig == "" || c.userSigExpireAt <= now.Unix() {
-		c.userSig, _ = sign.GenUserSig(c.opt.AppId, c.opt.AppSecret, c.opt.UserId, expire)
-		c.userSigExpireAt = now.Add(time.Duration(expire) * time.Second).Unix()
+		c.userSig, _ = sign.GenUserSig(c.opt.AppId, c.opt.AppSecret, c.opt.UserId, expiration)
+		c.userSigExpireAt = now.Add(time.Duration(expiration) * time.Second).Unix()
 	}
 
 	return c.userSig

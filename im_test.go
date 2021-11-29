@@ -41,9 +41,10 @@ const (
 
 func NewIM() im.IM {
 	return im.NewIM(&im.Options{
-		AppId:     1400564830,
-		AppSecret: "0d2a321b087fdb8fd5ed5ea14fe0489139086eb1b03541774fc9feeab8f2bfd3",
-		UserId:    "administrator",
+		AppId:      1400564830,
+		AppSecret:  "0d2a321b087fdb8fd5ed5ea14fe0489139086eb1b03541774fc9feeab8f2bfd3",
+		UserId:     "administrator",
+		Expiration: 3600,
 	})
 }
 
@@ -70,20 +71,12 @@ func testUserIds() []string {
 	}
 }
 
-// func NewIM() im.IM {
-//     return im.NewIM(im.Options{
-//         AppId:     0,
-//         AppSecret: "",
-//         UserId:    "administrator",
-//     })
-// }
-
 // GetUserSig 获取UserSig签名
 func TestIm_GetUserSig(t *testing.T) {
 	tim := NewIM()
 
 	for i := 0; i < 1000; i++ {
-		tim.GetUserSig()
+		tim.GetUserSig(assistant)
 	}
 
 	t.Log("Success")
