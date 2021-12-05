@@ -5,13 +5,16 @@
  * @Desc: TODO
  */
 
-package example
+package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 
 	"github.com/dobyte/tencent-im"
 	"github.com/dobyte/tencent-im/account"
+	"github.com/dobyte/tencent-im/callback"
 )
 
 func main() {
@@ -35,4 +38,26 @@ func main() {
 	}
 
 	fmt.Println("import account success.")
+
+	// 注册回调事件
+	tim.Callback().Register(callback.EventAfterFriendAdd, func(ack callback.Ack, data interface{}) {
+		fmt.Printf("%+v", data.(callback.AfterFriendAdd))
+		_ = ack.AckSuccess(0)
+	})
+
+	// 注册回调事件
+	tim.Callback().Register(callback.EventAfterFriendDelete, func(ack callback.Ack, data interface{}) {
+		fmt.Printf("%+v", data.(callback.AfterFriendDelete))
+		_ = ack.AckSuccess(0)
+	})
+
+	// 开启监听
+	http.HandleFunc("/callback", func(writer http.ResponseWriter, request *http.Request) {
+		tim.Callback().Listen(writer, request)
+	})
+
+	// 启动服务器
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
 }

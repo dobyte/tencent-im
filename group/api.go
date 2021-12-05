@@ -51,7 +51,7 @@ type API interface {
 	// App 管理员可以通过该接口获取App中所有群组的ID。
 	// 点击查看详细文档:
 	// https://cloud.tencent.com/document/product/269/1614
-	FetchGroupIds(limit int, next int, groupType ...GroupType) (ret *FetchGroupIdsRet, err error)
+	FetchGroupIds(limit int, next int, groupType ...Type) (ret *FetchGroupIdsRet, err error)
 
 	// FetchGroups 拉取App中的所有群组
 	// 本方法由“拉取App中的所有群组ID（FetchGroupIds）”拓展而来
@@ -266,11 +266,11 @@ func NewAPI(client core.Client) API {
 // App 管理员可以通过该接口获取App中所有群组的ID。
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1614
-func (a *api) FetchGroupIds(limit int, next int, groupType ...GroupType) (ret *FetchGroupIdsRet, err error) {
+func (a *api) FetchGroupIds(limit int, next int, groupType ...Type) (ret *FetchGroupIdsRet, err error) {
 	req := &fetchGroupIdsReq{Limit: limit, Next: next}
 
 	if len(groupType) > 0 {
-		req.GroupType = string(groupType[0])
+		req.Type = string(groupType[0])
 	}
 
 	resp := &fetchGroupIdsResp{}
@@ -305,7 +305,7 @@ func (a *api) FetchGroups(limit int, next int, groupTypeAndFilter ...interface{}
 	var (
 		resp      *FetchGroupIdsRet
 		filter    *Filter
-		groupType GroupType
+		groupType Type
 	)
 
 	if len(groupTypeAndFilter) > 0 {
@@ -314,7 +314,7 @@ func (a *api) FetchGroups(limit int, next int, groupTypeAndFilter ...interface{}
 				break
 			}
 			switch v := val.(type) {
-			case GroupType:
+			case Type:
 				groupType = v
 			case *Filter:
 				filter = v
@@ -344,7 +344,7 @@ func (a *api) FetchGroups(limit int, next int, groupTypeAndFilter ...interface{}
 func (a *api) PullGroups(arg *PullGroupsArg, fn func(ret *FetchGroupsRet)) (err error) {
 	var (
 		limit     = arg.Limit
-		groupType = arg.GroupType
+		groupType = arg.Type
 		filter    = arg.Filter
 		next      int
 		ret       *FetchGroupsRet
@@ -379,7 +379,7 @@ func (a *api) CreateGroup(group *Group) (groupId string, err error) {
 	req := &createGroupReq{}
 	req.GroupId = group.id
 	req.OwnerUserId = group.owner
-	req.GroupType = group.groupType
+	req.Type = group.groupType
 	req.Name = group.name
 	req.FaceUrl = group.avatar
 	req.Introduction = group.introduction
@@ -496,7 +496,7 @@ func (a *api) GetGroups(groupIds []string, filters ...*Filter) (groups []*Group,
 		if group.err == nil {
 			group.id = item.GroupId
 			group.name = item.Name
-			group.groupType = item.GroupType
+			group.groupType = item.Type
 			group.owner = item.OwnerUserId
 			group.avatar = item.FaceUrl
 			group.memberNum = item.MemberNum
@@ -769,7 +769,7 @@ func (a *api) DestroyGroup(groupId string) (err error) {
 // 点击查看详细文档:
 // https://cloud.tencent.com/document/product/269/1625
 func (a *api) FetchMemberGroups(arg *FetchMemberGroupsArg) (ret *FetchMemberGroupsRet, err error) {
-	req := &fetchMemberGroupsReq{UserId: arg.UserId, Limit: arg.Limit, Offset: arg.Offset, GroupType: arg.GroupType}
+	req := &fetchMemberGroupsReq{UserId: arg.UserId, Limit: arg.Limit, Offset: arg.Offset, Type: arg.Type}
 
 	if arg.Filter != nil {
 		req.ResponseFilter = &responseFilter{
@@ -806,7 +806,7 @@ func (a *api) FetchMemberGroups(arg *FetchMemberGroupsArg) (ret *FetchMemberGrou
 		group := NewGroup()
 		group.id = item.GroupId
 		group.name = item.Name
-		group.groupType = item.GroupType
+		group.groupType = item.Type
 		group.owner = item.OwnerUserId
 		group.avatar = item.FaceUrl
 		group.memberNum = item.MemberNum
@@ -861,7 +861,7 @@ func (a *api) PullMemberGroups(arg *PullMemberGroupsArg, fn func(ret *FetchMembe
 		req = &FetchMemberGroupsArg{
 			UserId:               arg.UserId,
 			Limit:                arg.Limit,
-			GroupType:            arg.GroupType,
+			Type:                 arg.Type,
 			Filter:               arg.Filter,
 			IsWithNoActiveGroups: arg.IsWithNoActiveGroups,
 			IsWithLiveRoomGroups: arg.IsWithLiveRoomGroups,
@@ -968,7 +968,7 @@ func (a *api) SendMessage(groupId string, message *Message) (ret *SendMessageRet
 	req.MsgPriority = string(message.GetPriority())
 	req.MsgBody = message.GetBody()
 	req.Random = message.GetRandom()
-	req.CustomData = conv.String(message.GetCustomData())
+	req.CloudCustomData = conv.String(message.GetCustomData())
 	req.SendMsgControl = message.GetSendMsgControl()
 	req.ForbidCallbackControl = message.GetForbidCallbackControl()
 	req.OnlineOnlyFlag = int(message.GetOnlineOnlyFlag())
@@ -1093,7 +1093,7 @@ func (a *api) ImportGroup(group *Group) (groupId string, err error) {
 	req := &importGroupReq{}
 	req.GroupId = group.id
 	req.OwnerUserId = group.owner
-	req.GroupType = group.groupType
+	req.Type = group.groupType
 	req.Name = group.name
 	req.FaceUrl = group.avatar
 	req.Introduction = group.introduction

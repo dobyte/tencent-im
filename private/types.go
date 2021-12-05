@@ -20,7 +20,7 @@ type (
 		MsgTimeStamp          int64                  `json:"MsgTimeStamp,omitempty"`          // （选填）消息时间戳，UNIX 时间戳（单位：秒）
 		MsgBody               []*types.MsgBody       `json:"MsgBody"`                         // （必填）消息内容，具体格式请参考 消息格式描述（注意，一条消息可包括多种消息元素，MsgBody 为 Array 类型）
 		SyncOtherMachine      int                    `json:"SyncOtherMachine,omitempty"`      // （选填）消息是否同步到在线终端和漫游上 1：把消息同步到 From_Account 在线终端和漫游上；2：消息不同步至 From_Account； 若不填写默认情况下会将消息存 From_Account 漫游
-		CustomData            string                 `json:"CloudCustomData,omitempty"`       // （选填）消息回调禁止开关，只对本条消息有效，
+		CloudCustomData       string                 `json:"CloudCustomData,omitempty"`       // （选填）消息回调禁止开关，只对本条消息有效，
 		SendMsgControl        []string               `json:"SendMsgControl,omitempty"`        // （选填）消息发送控制选项，是一个 String 数组，只对本条消息有效。
 		ForbidCallbackControl []string               `json:"ForbidCallbackControl,omitempty"` // （选填）消息回调禁止开关，只对本条消息有效
 		OfflinePushInfo       *types.OfflinePushInfo `json:"OfflinePushInfo,omitempty"`       // （选填）离线推送信息配置
@@ -47,7 +47,7 @@ type (
 		MsgRandom        uint32                 `json:"MsgRandom"`                  // （必填）消息随机数，后台用于同一秒内的消息去重。请确保该字段填的是随机数
 		MsgBody          []*types.MsgBody       `json:"MsgBody"`                    // （必填）消息内容，具体格式请参考 消息格式描述（注意，一条消息可包括多种消息元素，MsgBody 为 Array 类型）
 		SyncOtherMachine int                    `json:"SyncOtherMachine,omitempty"` // （选填）消息是否同步到在线终端和漫游上 1：把消息同步到 From_Account 在线终端和漫游上；2：消息不同步至 From_Account； 若不填写默认情况下会将消息存 From_Account 漫游
-		CustomData       string                 `json:"CloudCustomData,omitempty"`  // （选填）消息回调禁止开关，只对本条消息有效，
+		CloudCustomData  string                 `json:"CloudCustomData,omitempty"`  // （选填）消息回调禁止开关，只对本条消息有效，
 		SendMsgControl   []string               `json:"SendMsgControl,omitempty"`   // （选填）消息发送控制选项，是一个 String 数组，只对本条消息有效。
 		OfflinePushInfo  *types.OfflinePushInfo `json:"OfflinePushInfo,omitempty"`  // （选填）离线推送信息配置
 	}
@@ -80,7 +80,7 @@ type (
 		MsgTimeStamp      int64            `json:"MsgTimeStamp,omitempty"`      // （选填）消息时间戳，UNIX 时间戳（单位：秒）
 		MsgBody           []*types.MsgBody `json:"MsgBody"`                     // （必填）消息内容，具体格式请参考 消息格式描述（注意，一条消息可包括多种消息元素，MsgBody 为 Array 类型）
 		SyncFromOldSystem int              `json:"SyncFromOldSystem,omitempty"` // （选填）消息是否同步到在线终端和漫游上 1：把消息同步到 From_Account 在线终端和漫游上；2：消息不同步至 From_Account； 若不填写默认情况下会将消息存 From_Account 漫游
-		CustomData        string           `json:"CloudCustomData,omitempty"`   // （选填）消息回调禁止开关，只对本条消息有效，
+		CloudCustomData   string           `json:"CloudCustomData,omitempty"`   // （选填）消息回调禁止开关，只对本条消息有效，
 	}
 
 	// FetchMessagesArg 拉取消息参数
@@ -114,15 +114,15 @@ type (
 
 	// MessageItem 消息项
 	MessageItem struct {
-		FromUserId      string          `json:"From_Account"`
-		ToUserId        string          `json:"To_Account"`
-		MsgSeq          int             `json:"MsgSeq"`
-		MsgRandom       int             `json:"MsgRandom"`
-		MsgTimeStamp    int64           `json:"MsgTimeStamp"`
-		MsgFlagBits     int             `json:"MsgFlagBits"`
-		MsgKey          string          `json:"MsgKey"`
-		MsgBody         []types.MsgBody `json:"MsgBody"`
-		CloudCustomData string          `json:"CloudCustomData"`
+		FromUserId      string           `json:"From_Account"`
+		ToUserId        string           `json:"To_Account"`
+		MsgSeq          int              `json:"MsgSeq"`
+		MsgRandom       int              `json:"MsgRandom"`
+		MsgTimeStamp    int64            `json:"MsgTimeStamp"`
+		MsgFlagBits     int              `json:"MsgFlagBits"`
+		MsgKey          string           `json:"MsgKey"`
+		MsgBody         []*types.MsgBody `json:"MsgBody"`
+		CloudCustomData string           `json:"CloudCustomData"`
 	}
 
 	// PullMessagesArg 持续拉取单聊消息参数

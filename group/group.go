@@ -24,8 +24,8 @@ var (
 )
 
 type (
-	// GroupType 群类型
-	GroupType string
+	// Type 群类型
+	Type string
 
 	// ApplyJoinOption 申请加群处理方式
 	ApplyJoinOption string
@@ -35,10 +35,10 @@ type (
 )
 
 const (
-	TypePublic   GroupType = "Public"     // Public（陌生人社交群）
-	TypePrivate  GroupType = "Private"    // Private（即 Work，好友工作群）
-	TypeChatRoom GroupType = "ChatRoom"   // ChatRoom（即 Meeting，会议群）
-	TypeLiveRoom GroupType = "AVChatRoom" // AVChatRoom（直播群）
+	TypePublic   Type = "Public"     // Public（陌生人社交群）
+	TypePrivate  Type = "Private"    // Private（即 Work，好友工作群）
+	TypeChatRoom Type = "ChatRoom"   // ChatRoom（即 Meeting，会议群）
+	TypeLiveRoom Type = "AVChatRoom" // AVChatRoom（直播群）
 
 	ApplyJoinOptionFreeAccess     ApplyJoinOption = "FreeAccess"     // 自由加入
 	ApplyJoinOptionNeedPermission ApplyJoinOption = "NeedPermission" // 需要验证
@@ -52,7 +52,7 @@ type Group struct {
 	err             error
 	id              string                 // 群ID
 	name            string                 // 群名称
-	groupType       GroupType              // 群类型
+	groupType       Type                   // 群类型
 	owner           string                 // 群主ID
 	introduction    string                 // 群简介
 	notification    string                 // 群公告
@@ -108,12 +108,12 @@ func (g *Group) GetName() string {
 }
 
 // SetGroupType 设置群类型
-func (g *Group) SetGroupType(groupType GroupType) {
+func (g *Group) SetGroupType(groupType Type) {
 	g.groupType = groupType
 }
 
 // GetGroupType 获取群类型
-func (g *Group) GetGroupType() GroupType {
+func (g *Group) GetGroupType() Type {
 	return g.groupType
 }
 
@@ -355,7 +355,7 @@ func (g *Group) checkTypeArgError() error {
 		return errNotSetGroupType
 	}
 
-	switch GroupType(g.groupType) {
+	switch Type(g.groupType) {
 	case TypePublic, TypePrivate, TypeChatRoom, TypeLiveRoom:
 	default:
 		return errInvalidGroupType

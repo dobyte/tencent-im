@@ -28,8 +28,8 @@ func main() {
     })
     
     // 导入账号
-    if err := tim.Account().ImportAccount(&account.Info{
-        Account:  "test1",
+    if err := tim.Account().ImportAccount(&account.Account{
+        UserId:  "test1",
         Nickname: "测试账号1",
         FaceUrl:  "https://www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png",
     }); err != nil {
@@ -41,6 +41,28 @@ func main() {
     }
     
     fmt.Println("import account success.")
+    	
+    // 注册回调事件
+    tim.Callback().Register(callback.EventAfterFriendAdd, func(ack callback.Ack, data interface{}) {
+        fmt.Printf("%+v", data.(callback.AfterFriendAdd))
+        _ = ack.AckSuccess(0)
+    })
+    
+    // 注册回调事件
+    tim.Callback().Register(callback.EventAfterFriendDelete, func(ack callback.Ack, data interface{}) {
+        fmt.Printf("%+v", data.(callback.AfterFriendDelete))
+        _ = ack.AckSuccess(0)
+    })
+    
+    // 开启监听
+    http.HandleFunc("/callback", func(writer http.ResponseWriter, request *http.Request) {
+        tim.Callback().Listen(writer, request)
+    })
+    
+    // 启动服务器
+    if err := http.ListenAndServe(":8080", nil); err != nil {
+        log.Fatal("ListenAndServe: ", err)
+    }
 }
 ```
 

@@ -17,7 +17,7 @@ type (
 
 const (
 	BaseFieldGroupId         BaseInfoField = "GroupId"         // 群组的唯一标识
-	BaseFieldType            BaseInfoField = "GroupType"       // 群组类型
+	BaseFieldType            BaseInfoField = "Type"            // 群组类型
 	BaseFieldName            BaseInfoField = "Name"            // 群组名称
 	BaseFieldIntroduction    BaseInfoField = "Introduction"    // 群组简介
 	BaseFieldNotification    BaseInfoField = "Notification"    // 群组公告

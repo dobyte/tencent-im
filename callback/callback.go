@@ -14,33 +14,31 @@ import (
 	"net/http"
 	"strconv"
 	"sync"
-
-	"github.com/dobyte/tencent-im/internal/types"
 )
 
 const (
-	CommandStateChange          = "State.StateChange"
-	CommandBeforeFriendAdd      = "Sns.CallbackPrevFriendAdd"
-	CommandBeforeFriendResponse = "Sns.CallbackPrevFriendResponse"
-	CommandAfterFriendAdd       = "Sns.CallbackFriendAdd"
-
-	CommandSnsFriendAdd               = "Sns.CallbackFriendAdd"
-	CommandSnsFriendDelete            = "Sns.CallbackFriendDelete"
-	CommandSnsBlackListAdd            = "Sns.CallbackBlackListAdd"
-	CommandSnsBlackListDelete         = "Sns.CallbackBlackListDelete"
-	CommandC2CBeforeSendMsg           = "C2C.CallbackBeforeSendMsg"
-	CommandC2CAfterSendMsg            = "C2C.CallbackAfterSendMsg"
-	CommandGroupBeforeCreateGroup     = "Group.CallbackBeforeCreateGroup"
-	CommandGroupAfterCreateGroup      = "Group.CallbackAfterCreateGroup"
-	CommandGroupBeforeApplyJoinGroup  = "Group.CallbackBeforeApplyJoinGroup"
-	CommandGroupBeforeInviteJoinGroup = "Group.CallbackBeforeInviteJoinGroup"
-	CommandGroupAfterNewMemberJoin    = "Group.CallbackAfterNewMemberJoin"
-	CommandGroupAfterMemberExit       = "Group.CallbackAfterMemberExit"
-	CommandGroupBeforeSendMsg         = "Group.CallbackBeforeSendMsg"
-	CommandGroupAfterSendMsg          = "Group.CallbackAfterSendMsg"
-	CommandGroupAfterGroupFull        = "Group.CallbackAfterGroupFull"
-	CommandGroupAfterGroupDestroyed   = "Group.CallbackAfterGroupDestroyed"
-	CommandGroupAfterGroupInfoChanged = "Group.CallbackAfterGroupInfoChanged"
+	commandStateChange               = "State.StateChange"
+	commandBeforeFriendAdd           = "Sns.CallbackPrevFriendAdd"
+	commandBeforeFriendResponse      = "Sns.CallbackPrevFriendResponse"
+	commandAfterFriendAdd            = "Sns.CallbackFriendAdd"
+	commandAfterFriendDelete         = "Sns.CallbackFriendDelete"
+	commandAfterBlacklistAdd         = "Sns.CallbackBlackListAdd"
+	commandAfterBlacklistDelete      = "Sns.CallbackBlackListDelete"
+	commandBeforePrivateMessageSend  = "C2C.CallbackBeforeSendMsg"
+	commandAfterPrivateMessageSend   = "C2C.CallbackAfterSendMsg"
+	commandAfterPrivateMessageReport = "C2C.CallbackAfterMsgReport"
+	commandAfterPrivateMessageRevoke = "C2C.CallbackAfterMsgWithDraw"
+	commandBeforeGroupCreate         = "Group.CallbackBeforeCreateGroup"
+	commandAfterGroupCreate          = "Group.CallbackAfterCreateGroup"
+	commandBeforeApplyJoinGroup      = "Group.CallbackBeforeApplyJoinGroup"
+	commandBeforeInviteJoinGroup     = "Group.CallbackBeforeInviteJoinGroup"
+	commandAfterNewMemberJoinGroup   = "Group.CallbackAfterNewMemberJoin"
+	commandAfterMemberExitGroup      = "Group.CallbackAfterMemberExit"
+	commandBeforeGroupMessageSend    = "Group.CallbackBeforeSendMsg"
+	commandAfterGroupMessageSend     = "Group.CallbackAfterSendMsg"
+	commandAfterGroupFull            = "Group.CallbackAfterGroupFull"
+	commandAfterGroupDestroyed       = "Group.CallbackAfterGroupDestroyed"
+	commandAfterGroupInfoChanged     = "Group.CallbackAfterGroupInfoChanged"
 )
 
 const (
@@ -48,24 +46,24 @@ const (
 	EventBeforeFriendAdd
 	EventBeforeFriendResponse
 	EventAfterFriendAdd
-
-	EventSnsFriendAdd
-	EventSnsFriendDelete
-	EventSnsBlackListAdd
-	EventSnsBlackListDelete
-	EventC2CBeforeSendMsg
-	EventC2CAfterSendMsg
-	EventGroupBeforeCreateGroup
-	EventGroupAfterCreateGroup
-	EventGroupBeforeApplyJoinGroup
-	EventGroupBeforeInviteJoinGroup
-	EventGroupAfterNewMemberJoin
-	EventGroupAfterMemberExit
-	EventGroupBeforeSendMsg
-	EventGroupAfterSendMsg
-	EventGroupAfterGroupFull
-	EventGroupAfterGroupDestroyed
-	EventGroupAfterGroupInfoChanged
+	EventAfterFriendDelete
+	EventAfterBlacklistAdd
+	EventAfterBlacklistDelete
+	EventBeforePrivateMessageSend
+	EventAfterPrivateMessageSend
+	EventAfterPrivateMessageReport
+	EventAfterPrivateMessageRevoke
+	EventBeforeGroupCreate
+	EventAfterGroupCreate
+	EventBeforeApplyJoinGroup
+	EventBeforeInviteJoinGroup
+	EventAfterNewMemberJoinGroup
+	EventAfterMemberExitGroup
+	EventBeforeGroupMessageSend
+	EventAfterGroupMessageSend
+	EventAfterGroupFull
+	EventAfterGroupDestroyed
+	EventAfterGroupInfoChanged
 )
 
 const (
@@ -84,18 +82,35 @@ const (
 
 type (
 	Event            int
-	EventHandlerFunc func(data interface{}) error
+	EventHandlerFunc func(ack Ack, data interface{})
 	Options          struct {
 		SdkAppId int
 	}
 
 	Callback interface {
+		// Register 注册事件
+		Register(event Event, handler EventHandlerFunc)
+		// Listen 监听事件
+		Listen(w http.ResponseWriter, r *http.Request)
 	}
 
 	callback struct {
 		appId    int
-		lock     sync.Mutex
+		mu       sync.Mutex
 		handlers map[Event]EventHandlerFunc
+	}
+
+	Ack interface {
+		// Ack 应答
+		Ack(resp interface{}) error
+		// AckFailure 失败应答
+		AckFailure(message ...string) error
+		// AckSuccess 成功应答
+		AckSuccess(code int, message ...string) error
+	}
+
+	ack struct {
+		w http.ResponseWriter
 	}
 )
 
@@ -108,119 +123,115 @@ func NewCallback(appId int) Callback {
 
 // Register 注册事件
 func (c *callback) Register(event Event, handler EventHandlerFunc) {
-	c.lock.Lock()
+	c.mu.Lock()
 	c.handlers[event] = handler
-	c.lock.Unlock()
+	c.mu.Unlock()
 }
 
 // Listen 监听事件
 func (c *callback) Listen(w http.ResponseWriter, r *http.Request) {
+	a := newAck(w)
+
 	appId, ok := c.GetQuery(r, queryAppId)
 	if !ok || appId != strconv.Itoa(c.appId) {
-		_ = c.AckFailure(w, "invalid sdk appId")
+		_ = a.AckFailure("invalid sdk appId")
 		return
 	}
 
 	command, ok := c.GetQuery(r, queryCommand)
 	if !ok {
-		_ = c.AckFailure(w, "invalid callback command")
+		_ = a.AckFailure("invalid callback command")
 		return
 	}
 
 	body, err := ioutil.ReadAll(r.Body)
 	_ = r.Body.Close()
 	if err != nil {
-		_ = c.AckFailure(w, err.Error())
+		_ = a.AckFailure(err.Error())
 		return
 	}
 
 	if event, data, err := c.parseCommand(command, body); err != nil {
-		_ = c.AckFailure(w, err.Error())
+		_ = a.AckFailure(err.Error())
 	} else {
-		if err = c.handleEvent(event, data); err != nil {
-			_ = c.AckFailure(w, err.Error())
+		if fn, ok := c.handlers[event]; ok {
+			fn(a, data)
+			return
 		} else {
-			_ = c.AckSuccess(w)
+			_ = a.AckSuccess(ackSuccessCode)
 		}
 	}
-}
-
-// handleEvent 处理监听事件
-func (c *callback) handleEvent(event Event, data interface{}) error {
-	if fn, ok := c.handlers[event]; ok {
-		return fn(data)
-	}
-
-	return nil
 }
 
 // parseCommand parse command and body package.
 func (c *callback) parseCommand(command string, body []byte) (event Event, data interface{}, err error) {
 	switch command {
-	case CommandStateChange:
+	case commandStateChange:
 		event = EventStateChange
 		data = &StateChange{}
-	case CommandBeforeFriendAdd:
+	case commandBeforeFriendAdd:
 		event = EventBeforeFriendAdd
 		data = &BeforeFriendAdd{}
-	case CommandBeforeFriendResponse:
+	case commandBeforeFriendResponse:
 		event = EventBeforeFriendResponse
 		data = &BeforeFriendResponse{}
-	// case CommandAfterFriendAdd:
-	//
-	//
-	//
-	// case CommandSnsFriendAdd:
-	//     event = EventSnsFriendAdd
-	//     data = SnsFriendAdd{}
-	case CommandSnsFriendDelete:
-		event = EventSnsFriendDelete
-		data = SnsFriendDelete{}
-	case CommandSnsBlackListAdd:
-		event = EventSnsBlackListAdd
-		data = SnsBlackListAdd{}
-	case CommandSnsBlackListDelete:
-		event = EventSnsBlackListDelete
-		data = SnsBlackListDelete{}
-	case CommandC2CBeforeSendMsg:
-		event = EventC2CBeforeSendMsg
-		data = C2CBeforeSendMsg{}
-	case CommandC2CAfterSendMsg:
-		event = EventC2CAfterSendMsg
-		data = C2CAfterSendMsg{}
-	case CommandGroupBeforeCreateGroup:
-		event = EventGroupBeforeCreateGroup
-		data = GroupBeforeCreateGroup{}
-	case CommandGroupAfterCreateGroup:
-		event = EventGroupAfterCreateGroup
-		data = GroupAfterCreateGroup{}
-	case CommandGroupBeforeApplyJoinGroup:
-		event = EventGroupBeforeApplyJoinGroup
-		data = GroupBeforeApplyJoinGroup{}
-	case CommandGroupBeforeInviteJoinGroup:
-		event = EventGroupBeforeInviteJoinGroup
-		data = GroupBeforeInviteJoinGroup{}
-	case CommandGroupAfterNewMemberJoin:
-		event = EventGroupAfterNewMemberJoin
-		data = GroupAfterNewMemberJoin{}
-	case CommandGroupAfterMemberExit:
-		event = EventGroupAfterMemberExit
-		data = GroupAfterMemberExit{}
-	case CommandGroupBeforeSendMsg:
-		event = EventGroupBeforeSendMsg
-		data = GroupBeforeSendMsg{}
-	case CommandGroupAfterSendMsg:
-		event = EventGroupAfterSendMsg
-		data = GroupAfterSendMsg{}
-	case CommandGroupAfterGroupFull:
-		event = EventGroupAfterGroupFull
-		data = GroupAfterGroupFull{}
-	case CommandGroupAfterGroupDestroyed:
-		event = EventGroupAfterGroupDestroyed
-		data = GroupAfterGroupDestroyed{}
-	case CommandGroupAfterGroupInfoChanged:
-		event = EventGroupAfterGroupInfoChanged
-		data = GroupAfterGroupInfoChanged{}
+	case commandAfterFriendAdd:
+		event = EventAfterFriendAdd
+		data = &AfterFriendAdd{}
+	case commandAfterFriendDelete:
+		event = EventAfterFriendDelete
+		data = &AfterFriendDelete{}
+	case commandAfterBlacklistAdd:
+		event = EventAfterBlacklistAdd
+		data = &AfterBlacklistAdd{}
+	case commandAfterBlacklistDelete:
+		event = EventAfterBlacklistDelete
+		data = &AfterBlacklistDelete{}
+	case commandBeforePrivateMessageSend:
+		event = EventBeforePrivateMessageSend
+		data = &BeforePrivateMessageSend{}
+	case commandAfterPrivateMessageSend:
+		event = EventAfterPrivateMessageSend
+		data = &AfterPrivateMessageSend{}
+	case commandAfterPrivateMessageReport:
+		event = EventAfterPrivateMessageReport
+		data = &AfterPrivateMessageReport{}
+	case commandAfterPrivateMessageRevoke:
+		event = EventAfterPrivateMessageRevoke
+		data = &AfterPrivateMessageRevoke{}
+	case commandBeforeGroupCreate:
+		event = EventBeforeGroupCreate
+		data = &BeforeGroupCreate{}
+	case commandAfterGroupCreate:
+		event = EventAfterGroupCreate
+		data = &AfterGroupCreate{}
+	case commandBeforeApplyJoinGroup:
+		event = EventBeforeApplyJoinGroup
+		data = &BeforeApplyJoinGroup{}
+	case commandBeforeInviteJoinGroup:
+		event = EventBeforeInviteJoinGroup
+		data = &BeforeInviteJoinGroup{}
+	case commandAfterNewMemberJoinGroup:
+		event = EventAfterNewMemberJoinGroup
+		data = &AfterNewMemberJoinGroup{}
+	case commandAfterMemberExitGroup:
+		event = EventAfterMemberExitGroup
+		data = &AfterMemberExitGroup{}
+	case commandBeforeGroupMessageSend:
+		event = EventBeforeGroupMessageSend
+		data = &BeforeGroupMessageSend{}
+	case commandAfterGroupMessageSend:
+		event = EventAfterGroupMessageSend
+		data = &AfterGroupMessageSend{}
+	case commandAfterGroupFull:
+		event = EventAfterGroupFull
+		data = &AfterGroupFull{}
+	case commandAfterGroupDestroyed:
+		event = EventAfterGroupDestroyed
+		data = &AfterGroupDestroyed{}
+	case commandAfterGroupInfoChanged:
+		event = EventAfterGroupInfoChanged
+		data = &AfterGroupInfoChanged{}
 	default:
 		return 0, nil, errors.New("invalid callback command")
 	}
@@ -232,30 +243,6 @@ func (c *callback) parseCommand(command string, body []byte) (event Event, data 
 	return event, data, nil
 }
 
-// AckFailure 应答失败
-func (c *callback) AckFailure(w http.ResponseWriter, message ...string) error {
-	return c.Ack(w, ackFailureStatus, ackFailureCode, message...)
-}
-
-// AckSuccess 应答成功
-func (c *callback) AckSuccess(w http.ResponseWriter, message ...string) error {
-	return c.Ack(w, ackSuccessStatus, ackSuccessCode, message...)
-}
-
-// Ack 应答
-func (c *callback) Ack(w http.ResponseWriter, status string, code int, message ...string) error {
-	ack := types.ActionBaseResp{}
-	ack.ActionStatus = status
-	ack.ErrorCode = code
-	if len(message) > 0 {
-		ack.ErrorInfo = message[0]
-	}
-	b, _ := json.Marshal(ack)
-	w.WriteHeader(http.StatusOK)
-	_, err := w.Write(b)
-	return err
-}
-
 // GetQuery 获取查询参数
 func (c *callback) GetQuery(r *http.Request, key string) (string, bool) {
 	if values, ok := r.URL.Query()[key]; ok {
@@ -263,4 +250,40 @@ func (c *callback) GetQuery(r *http.Request, key string) (string, bool) {
 	} else {
 		return "", false
 	}
+}
+
+func newAck(w http.ResponseWriter) Ack {
+	return &ack{w}
+}
+
+// Ack 应答
+func (a *ack) Ack(resp interface{}) error {
+	b, _ := json.Marshal(resp)
+	a.w.WriteHeader(http.StatusOK)
+	_, err := a.w.Write(b)
+	return err
+}
+
+// AckFailure 应答失败
+func (a *ack) AckFailure(message ...string) error {
+	resp := BaseResp{}
+	resp.ActionStatus = ackFailureStatus
+	resp.ErrorCode = ackFailureCode
+	if len(message) > 0 {
+		resp.ErrorInfo = message[0]
+	}
+
+	return a.Ack(resp)
+}
+
+// AckSuccess 应答成功
+func (a *ack) AckSuccess(code int, message ...string) error {
+	resp := BaseResp{}
+	resp.ActionStatus = ackSuccessStatus
+	resp.ErrorCode = code
+	if len(message) > 0 {
+		resp.ErrorInfo = message[0]
+	}
+
+	return a.Ack(resp)
 }
