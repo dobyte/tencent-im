@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	defaultBaseUrl     = "https://console.tim.qq.com"
+	defaultBaseUrl     = "https://adminapiger.im.qcloud.com"
 	defaultVersion     = "v4"
 	defaultContentType = "json"
 	defaultExpiration  = 3600
