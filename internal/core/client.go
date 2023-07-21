@@ -53,6 +53,7 @@ type Options struct {
 	AppSecret  string // 密钥信息，可在即时通信 IM 控制台 的应用详情页面中获取，具体操作请参见 获取密钥
 	UserId     string // 用户ID
 	Expiration int    // UserSig过期时间
+	RequestUrl string // 请求地址, 因为不同的区域对应不同的请求地址
 }
 
 func NewClient(opt *Options) Client {
@@ -61,7 +62,11 @@ func NewClient(opt *Options) Client {
 	c.opt = opt
 	c.client = http.NewClient()
 	c.client.SetContentType(http.ContentTypeJson)
-	c.client.SetBaseUrl(defaultBaseUrl)
+	if opt.RequestUrl != "" {
+		c.client.SetBaseUrl(opt.RequestUrl)
+	} else {
+		c.client.SetBaseUrl(defaultBaseUrl)
+	}
 
 	return c
 }
