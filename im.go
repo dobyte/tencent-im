@@ -58,6 +58,7 @@ type (
 		AppSecret  string // 密钥信息，可在即时通信 IM 控制台 的应用详情页面中获取，具体操作请参见 获取密钥
 		UserId     string // 用户ID
 		Expiration int    // UserSig过期时间
+		RequestUrl string // 请求地址
 	}
 
 	UserSig struct {
@@ -117,6 +118,7 @@ func NewIM(opt *Options) IM {
 		AppSecret:  opt.AppSecret,
 		UserId:     opt.UserId,
 		Expiration: opt.Expiration,
+		RequestUrl: opt.RequestUrl,
 	})}
 }
 
