@@ -386,6 +386,7 @@ func (a *api) CreateGroup(group *Group) (groupId string, err error) {
 	req.Notification = group.notification
 	req.MaxMemberNum = group.maxMemberNum
 	req.ApplyJoinOption = group.applyJoinOption
+	req.InviteJoinOption = group.inviteJoinOption
 
 	if data := group.GetAllCustomData(); data != nil {
 		req.AppDefinedData = make([]*customDataItem, 0, len(data))
