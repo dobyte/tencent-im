@@ -30,6 +30,9 @@ type (
 	// ApplyJoinOption 申请加群处理方式
 	ApplyJoinOption string
 
+	// InviteJoinOption 邀请加群处理方式
+	InviteJoinOption string
+
 	// ShutUpStatus 全员禁言状态
 	ShutUpStatus string
 )
@@ -43,6 +46,10 @@ const (
 	ApplyJoinOptionFreeAccess     ApplyJoinOption = "FreeAccess"     // 自由加入
 	ApplyJoinOptionNeedPermission ApplyJoinOption = "NeedPermission" // 需要验证
 	ApplyJoinOptionDisableApply   ApplyJoinOption = "DisableApply"   // 禁止加群
+
+	InviteJoinOptionFreeAccess     InviteJoinOption = "FreeAccess"     // 自由加入
+	InviteJoinOptionNeedPermission InviteJoinOption = "NeedPermission" // 需要验证
+	InviteJoinOptionDisableApply   InviteJoinOption = "DisableApply"   // 禁止加群
 
 	ShutUpStatusOn  ShutUpStatus = "On"  // 开启
 	ShutUpStatusOff ShutUpStatus = "Off" // 关闭
@@ -174,8 +181,8 @@ func (g *Group) GetApplyJoinOption() string {
 }
 
 // SetInviteJoinOption 设置邀请加群选项
-func (g *Group) SetInviteJoinOption(applyJoinOption ApplyJoinOption) {
-	g.inviteJoinOption = string(applyJoinOption)
+func (g *Group) SetInviteJoinOption(inviteJoinOption InviteJoinOption) {
+	g.inviteJoinOption = string(inviteJoinOption)
 }
 
 // GetInviteJoinOption 获取邀请加群选项
