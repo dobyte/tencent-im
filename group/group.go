@@ -339,17 +339,17 @@ func (g *Group) checkImportError() (err error) {
 
 // 检测更新错误
 func (g *Group) checkUpdateError() (err error) {
-	if err = g.checkNameArgError(); err != nil {
-		return
-	}
-
-	if err = g.checkIntroductionArgError(); err != nil {
-		return
-	}
-
-	if err = g.checkNotificationArgError(); err != nil {
-		return
-	}
+	// if err = g.checkNameArgError(); err != nil {
+	// 	return
+	// }
+	//
+	// if err = g.checkIntroductionArgError(); err != nil {
+	// 	return
+	// }
+	//
+	// if err = g.checkNotificationArgError(); err != nil {
+	// 	return
+	// }
 
 	return
 }
