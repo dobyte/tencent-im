@@ -30,6 +30,9 @@ type (
 	// ApplyJoinOption 申请加群处理方式
 	ApplyJoinOption string
 
+	// InviteJoinOption 邀请加群处理方式
+	InviteJoinOption string
+
 	// ShutUpStatus 全员禁言状态
 	ShutUpStatus string
 )
@@ -44,29 +47,34 @@ const (
 	ApplyJoinOptionNeedPermission ApplyJoinOption = "NeedPermission" // 需要验证
 	ApplyJoinOptionDisableApply   ApplyJoinOption = "DisableApply"   // 禁止加群
 
+	InviteJoinOptionFreeAccess     InviteJoinOption = "FreeAccess"     // 自由加入
+	InviteJoinOptionNeedPermission InviteJoinOption = "NeedPermission" // 需要验证
+	InviteJoinOptionDisableApply   InviteJoinOption = "DisableApply"   // 禁止加群
+
 	ShutUpStatusOn  ShutUpStatus = "On"  // 开启
 	ShutUpStatusOff ShutUpStatus = "Off" // 关闭
 )
 
 type Group struct {
-	err             error
-	id              string                 // 群ID
-	name            string                 // 群名称
-	groupType       Type                   // 群类型
-	owner           string                 // 群主ID
-	introduction    string                 // 群简介
-	notification    string                 // 群公告
-	avatar          string                 // 群头像
-	memberNum       uint                   // 群成员数
-	maxMemberNum    uint                   // 最大群成员数量
-	applyJoinOption string                 // 申请加群处理方式
-	members         []*Member              // 群成员
-	customData      map[string]interface{} // 群自定义数据
-	createTime      int64                  // 群创建时间
-	lastInfoTime    int64                  // 最后群资料变更时间
-	lastMsgTime     int64                  // 群内最后一条消息的时间
-	nextMsgSeq      int                    // 群内下一条消息的Seq
-	shutUpStatus    string                 // 群全员禁言状态
+	err              error
+	id               string                 // 群ID
+	name             string                 // 群名称
+	groupType        Type                   // 群类型
+	owner            string                 // 群主ID
+	introduction     string                 // 群简介
+	notification     string                 // 群公告
+	avatar           string                 // 群头像
+	memberNum        uint                   // 群成员数
+	maxMemberNum     uint                   // 最大群成员数量
+	applyJoinOption  string                 // 申请加群处理方式
+	inviteJoinOption string                 // 申请加群处理方式
+	members          []*Member              // 群成员
+	customData       map[string]interface{} // 群自定义数据
+	createTime       int64                  // 群创建时间
+	lastInfoTime     int64                  // 最后群资料变更时间
+	lastMsgTime      int64                  // 群内最后一条消息的时间
+	nextMsgSeq       int                    // 群内下一条消息的Seq
+	shutUpStatus     string                 // 群全员禁言状态
 }
 
 func NewGroup(id ...string) *Group {
@@ -170,6 +178,16 @@ func (g *Group) SetApplyJoinOption(applyJoinOption ApplyJoinOption) {
 // GetApplyJoinOption 获取申请加群处理方式
 func (g *Group) GetApplyJoinOption() string {
 	return g.applyJoinOption
+}
+
+// SetInviteJoinOption 设置邀请加群选项
+func (g *Group) SetInviteJoinOption(inviteJoinOption InviteJoinOption) {
+	g.inviteJoinOption = string(inviteJoinOption)
+}
+
+// GetInviteJoinOption 获取邀请加群选项
+func (g *Group) GetInviteJoinOption() string {
+	return g.inviteJoinOption
 }
 
 // AddMembers 添加群成员
@@ -321,17 +339,17 @@ func (g *Group) checkImportError() (err error) {
 
 // 检测更新错误
 func (g *Group) checkUpdateError() (err error) {
-	if err = g.checkNameArgError(); err != nil {
-		return
-	}
-
-	if err = g.checkIntroductionArgError(); err != nil {
-		return
-	}
-
-	if err = g.checkNotificationArgError(); err != nil {
-		return
-	}
+	// if err = g.checkNameArgError(); err != nil {
+	// 	return
+	// }
+	//
+	// if err = g.checkIntroductionArgError(); err != nil {
+	// 	return
+	// }
+	//
+	// if err = g.checkNotificationArgError(); err != nil {
+	// 	return
+	// }
 
 	return
 }
